@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class MyException extends RuntimeException {
+public class BusinessException extends RuntimeException {
     private String errorType;
     private String message;
 }

@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,11 +38,25 @@ public class GlobalExceptionHandler{
         return buildErrorResponse("ValidationError", "Invalid input data", HttpStatus.BAD_REQUEST, errors);
     }
 
-    @ExceptionHandler(MyException.class)
-    public ResponseEntity<ApiResponse<Void>> handleCustomException(MyException ex) {
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCustomException(BusinessException ex) {
         return buildErrorResponse(ex.getErrorType(), ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAuthenticationException(AuthenticationException ex) {
+        return buildErrorResponse("AuthenticationError", ex.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(TokenValidationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTokenValidationException(TokenValidationException ex) {
+        return buildErrorResponse("TokenValidationError", ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        return buildErrorResponse("DataIntegrityError", "Database constraint violation", HttpStatus.CONFLICT);
+    }
 
     private ResponseEntity<ApiResponse<Void>> buildErrorResponse(String errorType, String message, HttpStatus status) {
         return buildErrorResponse(errorType, message, status, null);
