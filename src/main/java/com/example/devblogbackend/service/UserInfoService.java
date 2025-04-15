@@ -3,7 +3,9 @@ package com.example.devblogbackend.service;
 import com.example.devblogbackend.dto.ApiResponse;
 import com.example.devblogbackend.dto.Meta;
 import com.example.devblogbackend.dto.request.UpdateProfileRequest;
+import com.example.devblogbackend.dto.response.TagDTO;
 import com.example.devblogbackend.dto.response.UpdateProfileResponse;
+import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.entity.User;
 import com.example.devblogbackend.entity.UserInfo;
 import com.example.devblogbackend.exception.AuthenticationException;
@@ -12,6 +14,9 @@ import com.example.devblogbackend.repository.UserInfoRepository;
 import com.example.devblogbackend.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 public class UserInfoService {
 
@@ -19,6 +24,8 @@ public class UserInfoService {
     private final UserRepository userRepository;
     private final JwtTokenService jwtTokenService;
     private final String API_VERSION = "v1";
+    private final UserService userService;
+    private final TagService tagService;
 
     /**
      * Constructs a new UserService with required dependencies.
@@ -29,15 +36,12 @@ public class UserInfoService {
      */
     public UserInfoService(UserInfoRepository userInfoRepository,
                            UserRepository userRepository,
-                           JwtTokenService jwtTokenService) {
+                           JwtTokenService jwtTokenService, UserService userService, TagService tagService) {
         this.userInfoRepository = userInfoRepository;
         this.userRepository = userRepository;
         this.jwtTokenService = jwtTokenService;
-    }
-
-    public UserInfo getUserInfoById(String id) {
-        return userInfoRepository.findById(id)
-                .orElseThrow(() -> new AuthenticationException("User not found"));
+        this.userService = userService;
+        this.tagService = tagService;
     }
 
     /**
@@ -54,24 +58,21 @@ public class UserInfoService {
     public ApiResponse<UpdateProfileResponse> updateUserProfile(
             String token,
             UpdateProfileRequest request) {
-        // Validate token and get user ID
-        String userId = jwtTokenService.validateAndGetUserId(token);
-
         // Get user from database
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new AuthenticationException("User not found"));
+        User user = verifyAndGetUser(token);
 
-        UserInfo userInfo = getUserInfoById(userId);
+        UserInfo userInfo = userInfoRepository.findById(user.getId())
+                .orElseThrow(() -> new AuthenticationException("User not found"));
 
         // Validate and update email if provided
         if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
-            validateEmailUniqueness(request.getEmail(), userId);
+            validateEmailUniqueness(request.getEmail(), user.getId());
             user.setEmail(request.getEmail());
         }
 
         // Validate and update username if provided
         if (request.getUsername() != null && !request.getUsername().equals(userInfo.getUsername())) {
-            validateUsernameUniqueness(request.getUsername(), userId);
+            validateUsernameUniqueness(request.getUsername(), user.getId());
             userInfo.setUsername(request.getUsername());
         }
 
@@ -89,6 +90,46 @@ public class UserInfoService {
 
         return buildUpdateResponse(userInfo);
     }
+
+    public ApiResponse<Set<TagDTO>> getUserFavoriteTags(String token) {
+        User user = verifyAndGetUser(token);
+        return getUserFavoriteTags(user);
+    }
+
+    public ApiResponse<Set<TagDTO>> updateUserFavoriteTags(String token, Set<TagDTO> tags) {
+        User user = verifyAndGetUser(token);
+        user.getFavoriteTags().clear();
+        for (TagDTO tagDto : tags) {
+            Tag tag = tagService.findById(tagDto.getId());
+            if (tag == null) {
+                break;
+            }
+            user.getFavoriteTags().add(tag);
+        }
+        user = userRepository.save(user);
+        return getUserFavoriteTags(user);
+    }
+
+    private ApiResponse<Set<TagDTO>> getUserFavoriteTags(User user) {
+        Set<TagDTO> tags = user.getFavoriteTags()
+                .stream()
+                .map( tag -> new TagDTO(tag.getId(), tag.getName()))
+                .collect(Collectors.toSet());
+
+        return ApiResponse.<Set<TagDTO>>builder()
+                .data(tags)
+                .meta(new Meta(API_VERSION))
+                .build();
+    }
+
+    private User verifyAndGetUser(String token) {
+        String userId = jwtTokenService.validateAndGetUserId(token);
+
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new AuthenticationException("User not found"));
+    }
+
+
     /**
      * Validates that the email is unique across all users except the current user.
      *
