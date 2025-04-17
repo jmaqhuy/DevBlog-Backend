@@ -2,7 +2,7 @@ package com.example.devblogbackend.service;
 
 import com.example.devblogbackend.dto.ApiResponse;
 import com.example.devblogbackend.dto.Meta;
-import com.example.devblogbackend.dto.response.TagDTO;
+import com.example.devblogbackend.dto.TagDTO;
 import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.repository.TagRepository;
 import org.springframework.stereotype.Service;
@@ -45,6 +45,10 @@ public class TagService {
 
     public Tag findByName(String name) {
         return tagRepository.findByName(name);
+    }
+
+    public Set<Tag> getTagsByName(List<String> tagNames) {
+        return tagRepository.findByNameIn(tagNames);
     }
 
     public Tag findById(int id) {

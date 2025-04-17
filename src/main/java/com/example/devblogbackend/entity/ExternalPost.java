@@ -7,18 +7,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "tag")
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class Tag {
+@NoArgsConstructor
+public class ExternalPost {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private long id;
+    private String domain;
+    private String path;
 
-    private String name;
-
-    @Column(length = 1024)
-    private String description;
+    private String webLogo;
+    private String title;
+    private String thumbnail;
 }

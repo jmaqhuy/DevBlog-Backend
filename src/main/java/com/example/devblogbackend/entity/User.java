@@ -26,8 +26,18 @@ public class User {
 
     private boolean status;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private UserInfo userInfo;
+    private String fullname;
+    private String username;
+    private String avatarLink;
+    private String readme;
+    private String linkin;
+    private String github;
+    private String website;
+    private String stackOverflow;
+    private Integer totalReadingDays;
+
+    @Column(name = "registration_at")
+    private java.time.LocalDateTime registrationAt;
 
     @ManyToMany
     @JoinTable(

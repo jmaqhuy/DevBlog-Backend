@@ -1,6 +1,7 @@
 package com.example.devblogbackend.controller;
 
 import com.example.devblogbackend.service.FileStorageService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,6 +24,9 @@ public class ImageController {
     }
 
     @PostMapping("/api/upload-image")
+    @Operation(
+            summary = "Upload an image"
+    )
     public ResponseEntity<?> uploadFile(@RequestParam("image") MultipartFile file) {
         String fileName = fileStorageService.storeFile(file);
 
@@ -40,6 +44,9 @@ public class ImageController {
     }
 
     @GetMapping("/images/{fileName:.+}")
+    @Operation(
+            summary = "View Image"
+    )
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
         Resource resource = fileStorageService.loadFileAsResource(fileName);
 

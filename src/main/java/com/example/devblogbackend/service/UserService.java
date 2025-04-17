@@ -2,105 +2,162 @@ package com.example.devblogbackend.service;
 
 import com.example.devblogbackend.dto.ApiResponse;
 import com.example.devblogbackend.dto.Meta;
-import com.example.devblogbackend.dto.request.IntrospectRequest;
-import com.example.devblogbackend.dto.request.LoginRequest;
-import com.example.devblogbackend.dto.request.RegisterRequest;
-import com.example.devblogbackend.dto.response.IntrospectResponse;
-import com.example.devblogbackend.dto.response.LoginResponse;
-import com.example.devblogbackend.dto.response.RegisterResponse;
+import com.example.devblogbackend.dto.request.UpdateProfileRequest;
+import com.example.devblogbackend.dto.TagDTO;
+import com.example.devblogbackend.dto.response.UpdateProfileResponse;
+import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.entity.User;
-import com.example.devblogbackend.entity.UserInfo;
+import com.example.devblogbackend.exception.AuthenticationException;
 import com.example.devblogbackend.exception.BusinessException;
 import com.example.devblogbackend.repository.UserRepository;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-@Slf4j
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 public class UserService {
+
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final JwtTokenService jwtTokenService;
     private final String API_VERSION = "v1";
+    private final TagService tagService;
 
-    public UserService(
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            JwtTokenService jwtTokenService) {
+    /**
+     * Constructs a new UserService with required dependencies.
+     *
+     * @param userRepository Repository for user data operations
+     * @param jwtTokenService Service for JWT token operations
+     */
+    public UserService(UserRepository userRepository,
+                       JwtTokenService jwtTokenService,
+                       TagService tagService) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
         this.jwtTokenService = jwtTokenService;
+        this.tagService = tagService;
     }
 
-    public ApiResponse<RegisterResponse> registerUser(RegisterRequest request) {
-        validateNewUser(request.getEmail());
-        
-        User user = createNewUser(request);
-        UserInfo userInfo = new UserInfo();
-        userInfo.setUser(user);
-        user.setUserInfo(userInfo);
+    /**
+     * Updates a user's profile information.
+     * This method handles the update of email, username, name, and avatar.
+     * It ensures that email and username remain unique across all users.
+     *
+     * @param token JWT token for user authentication
+     * @param request DTO containing the profile update information
+     * @return ApiResponse containing the updated user profile information
+     * @throws AuthenticationException if the token is invalid or user not found
+     * @throws BusinessException if email or username is already taken
+     */
+    public ApiResponse<UpdateProfileResponse> updateUserProfile(
+            String token,
+            UpdateProfileRequest request) {
+        // Get user from database
+        User user = verifyAndGetUser(token);
 
+        // Validate and update email if provided
+        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
+            validateEmailUniqueness(request.getEmail(), user.getId());
+            user.setEmail(request.getEmail());
+        }
+
+        // Validate and update username if provided
+        if (request.getUsername() != null && !request.getUsername().equals(user.getUsername())) {
+            validateUsernameUniqueness(request.getUsername(), user.getId());
+            user.setUsername(request.getUsername());
+        }
+
+        // Update name if provided
+        if (request.getName() != null) {
+            user.setFullname(request.getName());
+        }
+
+        // Handle avatar upload if provided
+        if (request.getImageLink() != null && !request.getImageLink().isEmpty()) {
+            user.setAvatarLink(request.getImageLink());
+        }
+
+        return buildUpdateResponse(userRepository.save(user));
+    }
+
+    public ApiResponse<Set<TagDTO>> getUserFavoriteTags(String token) {
+        User user = verifyAndGetUser(token);
+        return getUserFavoriteTags(user);
+    }
+
+    public ApiResponse<Set<TagDTO>> updateUserFavoriteTags(String token, Set<TagDTO> tags) {
+        User user = verifyAndGetUser(token);
+        user.getFavoriteTags().clear();
+        for (TagDTO tagDto : tags) {
+            Tag tag = tagService.findById(tagDto.getId());
+            if (tag == null) {
+                break;
+            }
+            user.getFavoriteTags().add(tag);
+        }
         user = userRepository.save(user);
-        return buildRegisterResponse(user);
+        return getUserFavoriteTags(user);
     }
 
-    public ApiResponse<LoginResponse> loginUser(LoginRequest request) {
-        User user = validateLogin(request);
-        return buildLoginResponse(user);
-    }
+    private ApiResponse<Set<TagDTO>> getUserFavoriteTags(User user) {
+        Set<TagDTO> tags = user.getFavoriteTags()
+                .stream()
+                .map( tag -> new TagDTO(tag.getId(), tag.getName()))
+                .collect(Collectors.toSet());
 
-    private void validateNewUser(String email) {
-        if (userRepository.existsByEmail(email)) {
-            throw new BusinessException("Register Error", "User with this email already exists");
-        }
-    }
-
-    private User createNewUser(RegisterRequest request) {
-        User user = new User();
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        return user;
-    }
-
-    private User validateLogin(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail());
-        if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new BusinessException("Login Error","Invalid email or password");
-        }
-        return user;
-    }
-
-    private ApiResponse<RegisterResponse> buildRegisterResponse(User user) {
-        RegisterResponse response = RegisterResponse.builder()
-                .token(jwtTokenService.generateToken(user.getId()))
-                .id(user.getId())
-                .email(user.getEmail())
-                .build();
-
-        return ApiResponse.<RegisterResponse>builder()
-                .data(response)
+        return ApiResponse.<Set<TagDTO>>builder()
+                .data(tags)
                 .meta(new Meta(API_VERSION))
                 .build();
     }
 
-    private ApiResponse<LoginResponse> buildLoginResponse(User user) {
-        LoginResponse response = LoginResponse.builder()
-                .token(jwtTokenService.generateToken(user.getId()))
-                .id(user.getId())
-                .email(user.getEmail())
-                .build();
+    public User verifyAndGetUser(String token) {
+        String userId = jwtTokenService.validateAndGetUserId(token);
 
-        return ApiResponse.<LoginResponse>builder()
-                .data(response)
-                .meta(new Meta(API_VERSION))
-                .build();
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new AuthenticationException("User not found"));
     }
 
-    public ApiResponse<IntrospectResponse> introspect(IntrospectRequest request) {
-        boolean isValid = jwtTokenService.validateToken(request.getToken());
-        return ApiResponse.<IntrospectResponse>builder()
-                .data(new IntrospectResponse(isValid))
+
+    /**
+     * Validates that the email is unique across all users except the current user.
+     *
+     * @param email Email to validate
+     * @param userId Current user's ID to exclude from uniqueness check
+     * @throws BusinessException if email is already taken by another user
+     */
+    private void validateEmailUniqueness(String email, String userId) {
+        if (userRepository.existsByEmailAndIdNot(email, userId)) {
+            throw new BusinessException("Update Error", "Email already taken");
+        }
+    }
+
+    /**
+     * Validates that the username is unique across all users except the current user.
+     *
+     * @param username Username to validate
+     * @param userId Current user's ID to exclude from uniqueness check
+     * @throws BusinessException if username is already taken by another user
+     */
+    private void validateUsernameUniqueness(String username, String userId) {
+        if (userRepository.existsByUsernameAndIdNot(username, userId)) {
+            throw new BusinessException("Update Error", "Username already taken");
+        }
+    }
+
+    /**
+     * Builds the API response for profile updates.
+     *
+     * @param user Updated user entity
+     * @return ApiResponse containing the updated profile information
+     */
+    private ApiResponse<UpdateProfileResponse> buildUpdateResponse(User user) {
+        return ApiResponse.<UpdateProfileResponse>builder()
+                .data(UpdateProfileResponse.builder()
+                        .email(user.getEmail())
+                        .username(user.getUsername())
+                        .name(user.getFullname())
+                        .avatarPath(user.getAvatarLink())
+                        .build())
                 .meta(new Meta(API_VERSION))
                 .build();
     }

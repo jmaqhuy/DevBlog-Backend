@@ -2,7 +2,6 @@ package com.example.devblogbackend.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 
