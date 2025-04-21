@@ -28,3 +28,4 @@ jwt:
 
 file:
   upload-dir: C:/Users/Admin/Pictures/devblog_image_upload
+  cwebp-dir: C:/Users/Admin/Documents/libwebp-1.4.0-windows-x64/bin/cwebp.exe

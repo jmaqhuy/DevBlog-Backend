@@ -27,18 +27,11 @@ public class ImageController {
     @Operation(
             summary = "Upload an image"
     )
-    public ResponseEntity<?> uploadFile(@RequestParam("image") MultipartFile file) {
-        String fileName = fileStorageService.storeFile(file);
-
-//        String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-//                .path("/api/images/")
-//                .path(fileName)
-//                .toUriString();
-
+    public ResponseEntity<?> uploadImage(@RequestParam("image") MultipartFile file) {
+        String fileName = fileStorageService.storeImage(file);
 
         Map<String, String> response = new HashMap<>();
         response.put("imageName", fileName);
-//        response.put("imageLink", fileDownloadUri);
 
         return ResponseEntity.ok(response);
     }
@@ -50,7 +43,6 @@ public class ImageController {
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
         Resource resource = fileStorageService.loadFileAsResource(fileName);
 
-        // Xác định content type của file
         String contentType = null;
         try {
             contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
@@ -58,7 +50,6 @@ public class ImageController {
             // logger.info("Could not determine file type.");
         }
 
-        // Mặc định là octet-stream nếu không xác định được
         if (contentType == null) {
             contentType = "application/octet-stream";
         }
