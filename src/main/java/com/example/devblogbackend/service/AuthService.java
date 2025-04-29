@@ -2,10 +2,9 @@ package com.example.devblogbackend.service;
 
 import com.example.devblogbackend.dto.ApiResponse;
 import com.example.devblogbackend.dto.Meta;
-import com.example.devblogbackend.dto.request.IntrospectRequest;
+import com.example.devblogbackend.dto.UserInfoDTO;
 import com.example.devblogbackend.dto.request.LoginRequest;
 import com.example.devblogbackend.dto.request.RegisterRequest;
-import com.example.devblogbackend.dto.response.IntrospectResponse;
 import com.example.devblogbackend.dto.response.LoginResponse;
 import com.example.devblogbackend.dto.response.RegisterResponse;
 import com.example.devblogbackend.entity.User;
@@ -72,8 +71,7 @@ public class AuthService {
     private ApiResponse<RegisterResponse> buildRegisterResponse(User user) {
         RegisterResponse response = RegisterResponse.builder()
                 .token(jwtTokenService.generateToken(user.getId()))
-                .id(user.getId())
-                .email(user.getEmail())
+                .userInfo(UserInfoDTO.fromEntity(user))
                 .build();
 
         return ApiResponse.<RegisterResponse>builder()
@@ -85,8 +83,7 @@ public class AuthService {
     private ApiResponse<LoginResponse> buildLoginResponse(User user) {
         LoginResponse response = LoginResponse.builder()
                 .token(jwtTokenService.generateToken(user.getId()))
-                .id(user.getId())
-                .email(user.getEmail())
+                .userInfo(UserInfoDTO.fromEntity(user))
                 .build();
 
         return ApiResponse.<LoginResponse>builder()
@@ -95,11 +92,7 @@ public class AuthService {
                 .build();
     }
 
-    public ApiResponse<IntrospectResponse> introspect(IntrospectRequest request) {
-        boolean isValid = jwtTokenService.validateToken(request.getToken());
-        return ApiResponse.<IntrospectResponse>builder()
-                .data(new IntrospectResponse(isValid))
-                .meta(new Meta(API_VERSION))
-                .build();
+    public Boolean introspect(String token) {
+        return jwtTokenService.validateToken(token);
     }
 }

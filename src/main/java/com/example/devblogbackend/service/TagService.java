@@ -3,13 +3,16 @@ package com.example.devblogbackend.service;
 import com.example.devblogbackend.dto.ApiResponse;
 import com.example.devblogbackend.dto.Meta;
 import com.example.devblogbackend.dto.TagDTO;
+import com.example.devblogbackend.dto.TagScoreProjection;
 import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.repository.TagRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class TagService {
@@ -90,5 +93,11 @@ public class TagService {
         return tagRepository.save(currentTag);
     }
 
+//    public List<TagDTO> getTopTags() {
+//        List<TagScoreProjection> projections = tagRepository.findTopTags(1, 0.5, 2, 0.1, LocalDate.now().minusDays(30), 10);
+//        return projections.stream()
+//                .map(p -> new TagDTO(p.getTagId(), p.getTagName(), p.getTotalScore()))
+//                .collect(Collectors.toList());
+//    }
 
 }

@@ -23,7 +23,7 @@ public class ImageController {
         this.fileStorageService = fileStorageService;
     }
 
-    @PostMapping("/api/upload-image")
+    @PostMapping("/api/images")
     @Operation(
             summary = "Upload an image"
     )

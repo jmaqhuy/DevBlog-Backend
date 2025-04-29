@@ -4,13 +4,14 @@ spring:
     version: "v1"
 
   datasource:
-    url: "jdbc:mysql://localhost:3306/devblog"
-    username: "root"
-    password: "root"
+    url: ${DBMS_CONNECTION:jdbc:mysql://localhost:3306/devblog}
+    username: ${DBMS_USERNAME:root}
+    password: ${DBMS_PASSWORD:root}
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+    database-platform: org.hibernate.dialect.MySQL8Dialect
 
   servlet:
     multipart:
@@ -29,3 +30,4 @@ jwt:
 file:
   upload-dir: C:/Users/Admin/Pictures/devblog_image_upload
   cwebp-dir: C:/Users/Admin/Documents/libwebp-1.4.0-windows-x64/bin/cwebp.exe
+  apk: C:\Users\Admin\Downloads\MobiriseSetup.exe

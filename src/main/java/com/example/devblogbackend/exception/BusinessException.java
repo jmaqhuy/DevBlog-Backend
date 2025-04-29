@@ -1,10 +1,10 @@
 package com.example.devblogbackend.exception;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class BusinessException extends RuntimeException {
     private String errorType;
     private String message;

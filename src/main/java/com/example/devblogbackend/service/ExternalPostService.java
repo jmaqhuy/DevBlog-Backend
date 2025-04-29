@@ -18,10 +18,6 @@ import java.net.URL;
 public class ExternalPostService {
     private Playwright playwright;
     private Browser browser;
-    private final ExternalPostRepository externalPostRepository;
-    public ExternalPostService(ExternalPostRepository externalPostRepository) {
-        this.externalPostRepository = externalPostRepository;
-    }
 
     public ExternalPost addExternalPost(ShareExternalPostRequest request) {
         ExternalPost externalPost = new ExternalPost();
@@ -50,6 +46,12 @@ public class ExternalPostService {
             String thumbnail = null;
             if (page.querySelector("meta[property='og:image']") != null) {
                 thumbnail = page.querySelector("meta[property='og:image']").getAttribute("content");
+                if (!thumbnail.contains(externalPost.getDomain())) {
+                    if (!thumbnail.startsWith("/")) {
+                        thumbnail = "/" + thumbnail;
+                    }
+                    thumbnail = "https://" + externalPost.getDomain() + thumbnail;
+                }
             } else if (page.querySelector("meta[name='twitter:image']") != null) {
                 thumbnail = page.querySelector("meta[name='twitter:image']").getAttribute("content");
             }
@@ -57,9 +59,17 @@ public class ExternalPostService {
             String logo = null;
             if (page.querySelector("link[rel='icon']") != null) {
                 logo = page.querySelector("link[rel='icon']").getAttribute("href");
+                if (!logo.contains(externalPost.getDomain())) {
+                    if (!logo.startsWith("/")){
+                        logo = "/" + logo;
+                    }
+                    logo = "https://" + externalPost.getDomain() + logo;
+                }
             } else if (page.querySelector("link[rel='shortcut icon']") != null) {
                 logo = page.querySelector("link[rel='shortcut icon']").getAttribute("href");
             }
+
+
             externalPost.setTitle(title);
             externalPost.setThumbnail(thumbnail);
             externalPost.setWebLogo(logo);

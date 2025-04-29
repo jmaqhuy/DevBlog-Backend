@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class ExternalPost {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
     private String domain;
     private String path;
 

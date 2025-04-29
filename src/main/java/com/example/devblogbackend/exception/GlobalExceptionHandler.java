@@ -1,12 +1,8 @@
 package com.example.devblogbackend.exception;
 
-import com.example.devblogbackend.dto.ApiResponse;
-import com.example.devblogbackend.dto.Meta;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -24,7 +20,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDetails> handleGenericException(Exception ex, WebRequest request) {
-        return buildErrorResponse("UnhandledException", ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        ex.printStackTrace();
+        return buildErrorResponse("UnhandledException", ex.toString(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

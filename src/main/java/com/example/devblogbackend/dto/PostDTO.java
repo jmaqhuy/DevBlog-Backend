@@ -1,8 +1,10 @@
 package com.example.devblogbackend.dto;
 
 import com.example.devblogbackend.entity.Post;
+import com.example.devblogbackend.entity.User;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +18,7 @@ import java.util.stream.Collectors;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PostDTO {
     private long id;
@@ -26,12 +29,15 @@ public class PostDTO {
     private ExternalPostDTO externalPost;
     private Set<TagDTO> tags = new HashSet<>();
     private LocalDateTime publicationDate;
+    private boolean isLiked;
+    private int likes;
+    private int comments;
 
-    public static PostDTO fromEntity(Post post) {
+    public static PostDTO fromEntity(Post post, User user) {
         Set<TagDTO> tagDTOs = Optional.ofNullable(post.getTags())
                 .orElse(Collections.emptySet())
                 .stream()
-                .map(TagDTO::fromEntity)
+                .map(tag -> TagDTO.fromEntity(tag, 0))
                 .collect(Collectors.toSet());
 
         ExternalPostDTO externalPostDTO = null;
@@ -47,7 +53,10 @@ public class PostDTO {
                 post.getContent(),
                 externalPostDTO,
                 tagDTOs,
-                post.getPublicationDate()
+                post.getPublicationDate(),
+                post.getLikes().contains(user),
+                post.getLikes().size(),
+                post.getComments().size()
         );
     }
 }

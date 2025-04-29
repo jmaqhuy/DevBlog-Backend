@@ -8,12 +8,35 @@ import com.example.devblogbackend.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/post")
+@RequestMapping("/api/posts")
 public class PostController {
     private final PostService postService;
+
     public PostController(PostService postService) {
         this.postService = postService;
+    }
+
+    @GetMapping("/for-you")
+    public ApiResponse<List<PostDTO>> getPostsForYou(
+            @RequestHeader("Authorization") String token,
+            @RequestParam int pageNumber) {
+        return postService.getPostsForYou(token.substring(7), pageNumber);
+    }
+    @GetMapping("/following")
+    public ApiResponse<List<PostDTO>> getPostsFollowing(
+            @RequestHeader("Authorization") String token,
+            @RequestParam int pageNumber) {
+        return postService.getPostsFollowing(token.substring(7), pageNumber);
+    }
+
+    @GetMapping("/top")
+    public ApiResponse<List<PostDTO>> getTopPosts(
+            @RequestHeader("Authorization") String token,
+            @RequestParam int pageNumber){
+        return postService.getTopPosts(token.substring(7), pageNumber);
     }
 
     @PostMapping("/share")

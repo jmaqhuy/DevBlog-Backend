@@ -1,14 +1,16 @@
 package com.example.devblogbackend.controller;
 
 import com.example.devblogbackend.dto.ApiResponse;
+import com.example.devblogbackend.dto.UserDTO;
+import com.example.devblogbackend.dto.UserInfoDTO;
 import com.example.devblogbackend.dto.request.UpdateProfileRequest;
 import com.example.devblogbackend.dto.TagDTO;
-import com.example.devblogbackend.dto.response.UpdateProfileResponse;
 import com.example.devblogbackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -20,21 +22,38 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PutMapping(value = "/profile")
+    @PutMapping( "/me")
     @Operation(
-            summary = "Update User Profile"
+            summary = "Update my profile"
     )
-    public ApiResponse<UpdateProfileResponse> updateProfile(
+    public ApiResponse<UserInfoDTO> updateProfile(
             @RequestHeader("Authorization") String token,
             @RequestBody @Valid UpdateProfileRequest request) {
         return userService.updateUserProfile(token.substring(7), request);
     }
 
-
-
-    @GetMapping("/favorite-tags")
     @Operation(
-            summary = "Get user favorite tags"
+            summary = "Show my profile"
+    )
+    @GetMapping("/me")
+    public ApiResponse<UserInfoDTO> getOwnProfile(
+            @RequestHeader("Authorization") String token) {
+        return userService.getOwnProfile(token.substring(7));
+    }
+
+    @Operation(
+            summary = "Show another profile"
+    )
+    @GetMapping("/{id}")
+    public ApiResponse<UserInfoDTO> getUserProfile(
+            @RequestHeader("Authorization") String token,
+            @PathVariable String id) {
+        return userService.getAnotherProfile(token.substring(7), id);
+    }
+
+    @GetMapping("/me/favorite-tags")
+    @Operation(
+            summary = "Get my favorite tags"
     )
     public ApiResponse<Set<TagDTO>> getUserFavoriteTags(
             @RequestHeader("Authorization") String token) {
@@ -42,7 +61,7 @@ public class UserController {
     }
 
 
-    @PutMapping("/favorite-tags")
+    @PostMapping("/me/favorite-tags")
     @Operation(
             summary = "User update their favorite tags"
     )
@@ -53,4 +72,42 @@ public class UserController {
     }
 
 
+    @GetMapping("/{id}/followers")
+    @Operation(
+            summary = "Get list of who follow this id"
+    )
+    public ApiResponse<Set<UserDTO>> getFollowers(
+            @PathVariable String id){
+        return userService.getFollowerSet(id);
+    }
+
+
+    @GetMapping("/{id}/following")
+    @Operation(
+            summary = "Get list of who followed by id"
+    )
+    public ApiResponse<Set<UserDTO>> getFollowings(
+            @PathVariable String id){
+        return userService.getFollowingSet(id);
+    }
+
+    @Operation(
+            summary = "Follow another user"
+    )
+    @PutMapping("/{id}/follow")
+    public ApiResponse<Map<String, Boolean>> follow(
+            @RequestHeader("Authorization") String token,
+            @PathVariable String id) {
+        return userService.followUser(token.substring(7), id);
+    }
+
+//    @Operation(
+//            summary = "Unfollow user"
+//    )
+//    @DeleteMapping("/{id}/follow")
+//    public ApiResponse<Map<String, Boolean>> unfollow(
+//            @RequestHeader("Authorization") String token,
+//            @PathVariable String id) {
+//        return userService.followUser(token.substring(7), id, false);
+//    }
 } 

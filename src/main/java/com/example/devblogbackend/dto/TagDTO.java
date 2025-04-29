@@ -13,8 +13,9 @@ import lombok.NoArgsConstructor;
 public class TagDTO {
     private int id;
     private String name;
+    private double totalScore;
 
-    public static TagDTO fromEntity(Tag tag) {
-        return new TagDTO(tag.getId(), tag.getName());
+    public static TagDTO fromEntity(Tag tag, double totalScore) {
+        return new TagDTO(tag.getId(), tag.getName(), totalScore);
     }
 }

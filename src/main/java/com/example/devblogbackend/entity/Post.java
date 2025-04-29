@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Formula;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -15,10 +16,15 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "post", indexes = {
+        @Index(name = "idx_post_publication_date", columnList = "publication_date"),
+        @Index(name = "idx_post_author", columnList = "author"),
+        @Index(name = "idx_post_title", columnList = "title")
+})
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author")
@@ -45,4 +51,23 @@ public class Post {
 
     @Column(name = "publication_date")
     private LocalDateTime publicationDate;
+
+
+    // statistic
+    @ManyToMany
+    @JoinTable(
+            name = "post_like",
+            joinColumns = @JoinColumn(name = "post_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> likes = new HashSet<>();
+
+    @OneToMany(mappedBy = "post")
+    private Set<PostComment> comments = new HashSet<>();
+
+
+    @Formula("(SELECT COUNT(*) FROM post_comment pc WHERE pc.post_id = id)")
+    private Integer commentCount;
+
+
 }

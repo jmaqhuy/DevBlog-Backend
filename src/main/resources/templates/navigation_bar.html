@@ -1,0 +1,24 @@
+<div th:fragment="myheader" class="header">
+    <a class="logo" th:href="@{/}">
+        <img th:src="@{/image/logo.svg}" alt="Logo" /> DEVBLOG
+    </a>
+    <nav>
+        <ul class="nav-list">
+            <li>
+                <a href="#" class="nav-link"><i class="fa-brands fa-github"></i> GITHUB</a>
+                <ul class="drop-down">
+                    <li><a href="https://github.com/jmaqhuy/DevBlog-Android-App" target="_blank">Android App Repository</a></li>
+                    <li><a href="https://github.com/jmaqhuy/DevBlog-Backend" target="_blank">Server Repository</a></li>
+                </ul>
+            </li>
+            <li>
+                <a th:href="@{/swagger-ui/index.html#}" class="nav-link" target="_blank">
+                    <i class="fa-solid fa-file"></i> API DOCUMENTATION
+                </a>
+            </li>
+            <li>
+                <a href="#" class="cta"><button>LOGIN</button></a>
+            </li>
+        </ul>
+    </nav>
+</div>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devblog Homepage</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="shortcut icon" th:href="@{/image/logo.svg}" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+          integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+</head>
+<body>
+<div class="navbar-top">
+    <a class="logo" th:href="@{/}">
+        <img th:src="@{/image/logo.svg}" alt="Logo"/> DEVBLOG
+    </a>
+    <div class="hamburger">
+        <i class="fas fa-bars"></i>
+    </div>
+    <nav>
+        <ul class="nav-list">
+            <li>
+                <a href="#" class="nav-link"><i class="fa-brands fa-github"></i> GITHUB</a>
+                <ul class="drop-down">
+                    <li><a href="https://github.com/jmaqhuy/DevBlog-Android-App" target="_blank">Android App
+                        Repository</a></li>
+                    <li><a href="https://github.com/jmaqhuy/DevBlog-Backend" target="_blank">Server Repository</a></li>
+                </ul>
+            </li>
+            <li>
+                <a th:href="@{/swagger-ui/index.html#}" class="nav-link" target="_blank">
+                    <i class="fa-solid fa-file"></i> API DOCUMENTATION
+                </a>
+            </li>
+            <li>
+                <a href="#" class="cta">
+                    <button>LOGIN</button>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+<header>
+    <div class="content">
+        <div class="text">
+            <h1>Welcome to DevBlog</h1>
+            <p>Discover bite-sized tech news, share your insights, and connect with a vibrant developer community.
+                Download the app today and take your coding journey anywhere!</p>
+        </div>
+        <a class="download-btn" th:href="@{/download-apk}">
+            <i class="fa-brands fa-android"></i> Download APK
+        </a>
+    </div>
+</header>
+<section class="latest-posts">
+    <h2>Latest Blog Posts</h2>
+    <p>Check out what's new in the web development and tech worlds!</p>
+    <div class="blog-grid">
+        <a th:each="post: ${listPosts}" th:href="${post.link}" target="_blank" class="blog-card">
+            <img th:src="${post.thumbnail}" alt="Blog Thumbnail" class="blog-thumbnail">
+            <span class="blog-tag" th:each="tag : ${post.tags}" th:text="'#' + ${tag.name} + '  '"></span>
+            <h3 class="blog-title" th:text="${post.title}">Blog Post Title</h3>
+            <div class="blog-author">
+                <img th:src="${post.userAvatar}" alt="Author Avatar" class="author-avatar">
+                <div class="author-info">
+                    <span class="author-username" th:text="${post.username}"></span>
+                    <span class="blog-date"
+                          th:text="${post.publicationDate.dayOfMonth} + ' ' + ${post.publicationDate.month} + ' ' + ${post.publicationDate.year}"></span>
+                </div>
+            </div>
+        </a>
+    </div>
+</section>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const hamburger = document.querySelector('.hamburger');
+        const navList = document.querySelector('.nav-list');
+
+        hamburger.addEventListener('click', () => {
+            navList.classList.toggle('active');
+        });
+
+        // Đóng menu khi nhấp vào liên kết (tùy chọn)
+        document.querySelectorAll('.nav-list a').forEach(link => {
+            link.addEventListener('click', () => {
+                navList.classList.remove('active');
+            });
+        });
+    });
+</script>
+</body>
+</html>

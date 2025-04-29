@@ -1,19 +1,14 @@
 package com.example.devblogbackend.controller;
 
-import com.example.devblogbackend.dto.request.IntrospectRequest;
 import com.example.devblogbackend.dto.request.LoginRequest;
 import com.example.devblogbackend.dto.request.RegisterRequest;
 import com.example.devblogbackend.dto.ApiResponse;
-import com.example.devblogbackend.dto.response.IntrospectResponse;
 import com.example.devblogbackend.dto.response.LoginResponse;
 import com.example.devblogbackend.dto.response.RegisterResponse;
 import com.example.devblogbackend.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
@@ -44,7 +39,7 @@ public class AuthController {
     @Operation(
             summary = "Validate token"
     )
-    public ApiResponse<IntrospectResponse> introspect(@RequestBody IntrospectRequest request) {
-        return authService.introspect(request);
+    public Boolean introspect(@RequestHeader("Authorization") String token) {
+        return authService.introspect(token.substring(7));
     }
 }
