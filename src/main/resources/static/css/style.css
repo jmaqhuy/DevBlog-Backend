@@ -93,8 +93,10 @@ body {
     pointer-events: auto;
 }
 
+/* Link trong nav */
 .nav-list a {
-    color: white;
+    color: #0f0f0f;
+    text-decoration: none;
 }
 
 /* Style từng item trong drop-down */
@@ -109,14 +111,10 @@ body {
     cursor: pointer;
 }
 
+
+
 .drop-down a {
     color: white;
-    text-decoration: none;
-}
-
-/* Link trong nav */
-.nav-list a {
-    color: #0f0f0f;
     text-decoration: none;
 }
 
