@@ -1,0 +1,4 @@
+file:
+  upload-dir: /app/uploads
+  cwebp-dir: /usr/bin/cwebp
+  apk: /opt/static/Devblog.apk

@@ -33,6 +33,7 @@ public class HomeController {
 
     @GetMapping("/download-apk")
     public ResponseEntity<Resource> downloadApk() {
+        System.out.println("APK file path: {}" + apkFilePath);
         File file = new File(apkFilePath);
         if (!file.exists()) {
             return ResponseEntity.notFound().build();

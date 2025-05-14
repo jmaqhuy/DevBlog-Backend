@@ -13,6 +13,12 @@ RUN mvn package -DskipTests
 # --------------------------------------
 FROM mcr.microsoft.com/playwright/java:v1.32.0-focal
 
+# Install cwebp for WebP conversion
+RUN apt-get update && \
+    apt-get install -y webp && \
+    rm -rf /var/lib/apt/lists/* \
+
+
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 

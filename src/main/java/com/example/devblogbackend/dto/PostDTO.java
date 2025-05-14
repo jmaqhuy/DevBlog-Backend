@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PostDTO {
-    private long id;
+    private Long id;
     private UserDTO author;
     private String title;
     private String thumbnail;
@@ -29,9 +29,9 @@ public class PostDTO {
     private ExternalPostDTO externalPost;
     private Set<TagDTO> tags = new HashSet<>();
     private LocalDateTime publicationDate;
-    private boolean isLiked;
-    private int likes;
-    private int comments;
+    private Boolean isLiked;
+    private Integer likes;
+    private Integer comments;
 
     public static PostDTO fromEntity(Post post, User user) {
         Set<TagDTO> tagDTOs = Optional.ofNullable(post.getTags())
@@ -56,7 +56,7 @@ public class PostDTO {
                 post.getPublicationDate(),
                 post.getLikes().contains(user),
                 post.getLikes().size(),
-                post.getComments().size()
+                post.getCommentCount()
         );
     }
 }

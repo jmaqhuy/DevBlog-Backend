@@ -18,6 +18,9 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+  profiles:
+    active: linux
+
 server:
   port: 8080
 #  servlet:
@@ -25,9 +28,3 @@ server:
 
 jwt:
   signerKey: "VKnmoynIIjQPXuNksYl87mca+UssmhVO3EYoVAnD4op+qp1aaE6SKMWoIvZy/eKd"
-
-
-file:
-  upload-dir: C:/Users/Admin/Pictures/devblog_image_upload
-  cwebp-dir: C:/Users/Admin/Documents/libwebp-1.4.0-windows-x64/bin/cwebp.exe
-  apk: C:\Users\Admin\Downloads\MobiriseSetup.exe
