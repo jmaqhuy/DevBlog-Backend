@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -31,14 +33,10 @@ public class User {
     private String username;
     private String avatarLink;
     private String readme;
-    private String linkin;
-    private String github;
-    private String website;
-    private String stackOverflow;
-    private Integer totalReadingDays;
 
+    @CreationTimestamp
     @Column(name = "registration_at")
-    private java.time.LocalDateTime registrationAt;
+    private LocalDateTime registrationAt;
 
     @ManyToMany
     @JoinTable(

@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -28,7 +28,7 @@ public class Bookmark {
     @JoinColumn(name = "post_id" , nullable = false)
     private Post post;
 
-    @CreatedDate
+    @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
 

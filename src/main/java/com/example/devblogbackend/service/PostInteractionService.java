@@ -14,9 +14,7 @@ import com.example.devblogbackend.repository.UserReadRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class PostInteractionService {
@@ -44,7 +42,7 @@ public class PostInteractionService {
         User user = userService.verifyAndGetUser(token);
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("","Post not found"));
+                .orElseThrow(() -> new BusinessException("", "Post not found"));
 
         boolean liked = post.getLikes().contains(user);
         if (liked) {
@@ -67,11 +65,11 @@ public class PostInteractionService {
 
         User user = userService.verifyAndGetUser(token);
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("","Post not found"));
+                .orElseThrow(() -> new BusinessException("", "Post not found"));
         PostComment parentComment = null;
-        if (request.getParentCommentId() != null){
+        if (request.getParentCommentId() != null) {
             parentComment = postCommentRepository.findById(request.getParentCommentId())
-                    .orElseThrow(() -> new BusinessException("","Comment you reply has been remove or not exist"));
+                    .orElseThrow(() -> new BusinessException("", "Comment you reply has been remove or not exist"));
         }
 
 
@@ -89,11 +87,35 @@ public class PostInteractionService {
                 .build();
     }
 
+    public ApiResponse<List<PostCommentDTO>> getCommentPost(long postId, String token, String parentId) {
+
+        User user = userService.verifyAndGetUser(token);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException("", "Post not found"));
+
+        PostComment parent = parentId != null
+                ? postCommentRepository.findById(Long.parseLong(parentId))
+                .orElseThrow(() -> new BusinessException("", "Parent comment not found"))
+                : null;
+
+        List<PostComment> postComment = parentId == null
+                ? postCommentRepository.findByPostAndParentIsNull(post)
+                : postCommentRepository.findByPostAndParent(post, parent);
+
+        return ApiResponse.<List<PostCommentDTO>>builder()
+                .data(postComment.stream()
+                        .sorted(Comparator.comparing(PostComment::getCommentAt).reversed())
+                        .map(PostCommentDTO::fromEntity)
+                        .toList())
+                .meta(new Meta("v1"))
+                .build();
+    }
+
     @Transactional
     public ApiResponse<Map<String, Boolean>> bookmarkPost(long postId, String token) {
         User user = userService.verifyAndGetUser(token);
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("","Post not found"));
+                .orElseThrow(() -> new BusinessException("", "Post not found"));
 
         Bookmark.BookmarkID bookmarkId = new Bookmark.BookmarkID(user.getId(), postId);
 
@@ -122,7 +144,7 @@ public class PostInteractionService {
     public ApiResponse<PostDTO> readPost(Long postId, String token) {
         User user = userService.verifyAndGetUser(token);
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("","Post not found"));
+                .orElseThrow(() -> new BusinessException("", "Post not found"));
 
         UserReadHistory.UserReadHistoryID id = new UserReadHistory.UserReadHistoryID(user.getId(), post.getId());
         Optional<UserReadHistory> existed = userReadRepository.findById(id);

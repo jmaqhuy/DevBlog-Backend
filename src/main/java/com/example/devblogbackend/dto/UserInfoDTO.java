@@ -22,7 +22,6 @@ public class UserInfoDTO {
     private String username;
     private String avatarLink;
     private String readme;
-    private Integer totalReadingDays;
     private java.time.LocalDateTime registrationAt;
     private Set<Tag> favoriteTags;
     private int followers;
@@ -36,7 +35,6 @@ public class UserInfoDTO {
                 .username(user.getUsername())
                 .avatarLink(user.getAvatarLink())
                 .readme(user.getReadme())
-                .totalReadingDays(user.getTotalReadingDays())
                 .registrationAt(user.getRegistrationAt())
                 .favoriteTags(user.getFavoriteTags())
                 .followers(user.getFollowers().size())

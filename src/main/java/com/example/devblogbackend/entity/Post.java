@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Formula;
 
 import java.time.LocalDateTime;
@@ -49,6 +50,7 @@ public class Post {
     )
     private Set<Tag> tags = new HashSet<>();
 
+    @CreationTimestamp
     @Column(name = "publication_date")
     private LocalDateTime publicationDate;
 
@@ -67,7 +69,7 @@ public class Post {
 
 
     @Formula("(SELECT COUNT(*) FROM post_comment pc WHERE pc.post_id = id)")
-    private Integer commentCount;
+    private Integer commentCount = 0;
 
 
 }

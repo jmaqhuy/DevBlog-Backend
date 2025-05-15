@@ -2,6 +2,7 @@ package com.example.devblogbackend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -23,6 +24,7 @@ public class UserReadHistory {
     @JoinColumn(name = "post_id")
     private Post post;
 
+    @CreationTimestamp
     private LocalDateTime readAt;
 
     @Getter @Setter

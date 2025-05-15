@@ -43,7 +43,6 @@ public class PostService {
         User user = userService.verifyAndGetUser(token);
         Post post = new Post();
         post.setAuthor(user);
-        post.setPublicationDate(LocalDateTime.now());
         post.setTitle(request.getTitle());
         post.setContent(request.getContent());
         post.setThumbnail(request.getThumbnail());
@@ -62,7 +61,6 @@ public class PostService {
 
         Post post = new Post();
         post.setAuthor(user);
-        post.setPublicationDate(LocalDateTime.now());
         post.setContent(request.getUserThrough());
         post.setExternalPost(ext);
         applyTags(post, request.getTags());
@@ -83,7 +81,6 @@ public class PostService {
     public ApiResponse<List<PostDTO>> getTopPosts(String token, int page) {
         User user = userService.verifyAndGetUser(token);
         List<Post> posts = fetchByScore(null, page, SAMPLE_PAGE_SIZE);
-
         return toDtoResponse(posts, user);
     }
 
