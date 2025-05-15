@@ -43,6 +43,7 @@ public class PostService {
         User user = userService.verifyAndGetUser(token);
         Post post = new Post();
         post.setAuthor(user);
+        post.setPublicationDate(LocalDateTime.now());
         post.setTitle(request.getTitle());
         post.setContent(request.getContent());
         post.setThumbnail(request.getThumbnail());

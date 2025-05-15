@@ -25,16 +25,16 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                       LEFT JOIN user_read_history ur ON ur.post_id = p.id
                     WHERE p.publication_date >= :cutoff
                       AND (
-                        :tagIds IS NULL 
+                        :#{#tagIds == null || #tagIds.isEmpty()} = true
                         OR EXISTS (
-                          SELECT 1 
-                            FROM post_tag pt 
-                           WHERE pt.post_id = p.id 
+                          SELECT 1
+                            FROM post_tag pt
+                           WHERE pt.post_id = p.id
                              AND pt.tag_id IN (:tagIds)
                         )
                       )
                     GROUP BY p.id
-                    ORDER BY 
+                    ORDER BY
                       (
                         COUNT(ur.user_id) * :wReadHistory
                       + COUNT(l.user_id) * :wLike
