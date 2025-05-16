@@ -29,32 +29,30 @@ public class SecurityConfig {
     public SecurityFilterChain configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(requests -> {
-                    requests
-                            .requestMatchers(HttpMethod.GET,
-                                    "/",
-                                    "/download-apk",
-                                    "/swagger-ui/**",
-                                    "/login",
-                                    "/logout"
-                            ).permitAll()
-                            .requestMatchers(HttpMethod.POST,
-                                    "/api/register",
-                                    "/api/login",
-                                    "/api/introspect",
-                                    "/login"
-                            ).permitAll()
-                            .requestMatchers(
-                                    "/css/**",
-                                    "/image/**",
-                                    "/images/**"
-                            ).permitAll()
-                            .requestMatchers(
-                                    "/admin",
-                                    "/admin/**"
-                            ).hasRole(Role.ADMIN.name())
-                            .anyRequest().authenticated();
-                })
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers(HttpMethod.GET,
+                                "/",
+                                "/download-apk",
+                                "/login",
+                                "/logout"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/register",
+                                "/api/login",
+                                "/api/introspect",
+                                "/login"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/css/**",
+                                "/image/**",
+                                "/images/**"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/admin",
+                                "/admin/**",
+                                "/swagger-ui/**"
+                        ).hasRole(Role.ADMIN.name())
+                        .anyRequest().authenticated())
                 .addFilterBefore(new JwtCookieFilter(jwtDecoder(), jwtConverter()), BearerTokenAuthenticationFilter.class)
                 .oauth2ResourceServer(oauth2 ->
                         oauth2.jwt(jwtConfigurer ->
