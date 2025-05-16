@@ -31,7 +31,7 @@ public class AuthController {
     @Operation(
             summary = "Login to app"
     )
-    public ApiResponse<LoginResponse> login(@RequestBody LoginRequest request) {
+    public ApiResponse<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
         return authService.loginUser(request);
     }
 

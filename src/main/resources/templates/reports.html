@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report - Devblog</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/report-style.css}">
+
+    <link rel="shortcut icon" th:href="@{/image/logo.svg}" type="image/x-icon">
+</head>
+<body>
+<div th:if="${defaultPassword}" class="warning-banner">
+    <p>ADMIN USER CREATED WITH DEFAULT CREDENTIALS. For security reasons, please update the password immediately.</p>
+</div>
+<div class="navbar-top">
+    <a class="logo" th:href="@{/}">
+        <img th:src="@{/image/logo.svg}" alt="Logo"/> DEVBLOG
+    </a>
+    <div class="hamburger">
+        <i class="fas fa-bars"></i>
+    </div>
+    <nav>
+        <ul class="nav-list">
+            <li>
+                <a href="#" class="nav-link"><i class="fa-brands fa-github"></i> GITHUB</a>
+                <ul class="drop-down">
+                    <li><a href="https://github.com/jmaqhuy/Devblog-Application" target="_blank">Android App
+                        Repository</a></li>
+                    <li><a href="https://github.com/jmaqhuy/DevBlog-Backend" target="_blank">Server Repository</a></li>
+                </ul>
+            </li>
+            <li>
+                <a th:href="@{/swagger-ui/index.html#}" class="nav-link" target="_blank">
+                    <i class="fa-solid fa-file"></i> API DOCUMENTATION
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/logout}" class="cta">
+                    <button>LOGOUT</button>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<div class="reports-container">
+    <h1>Reports Management</h1>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-group">
+            <label for="status-filter">Status:</label>
+            <select id="status-filter" name="status">
+                <option value="">All</option>
+                <option th:each="status : ${T(com.example.devblogbackend.enums.ReportStatus).values()}"
+                        th:value="${status}" th:text="${status}"></option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="result-filter">Result:</label>
+            <select id="result-filter" name="result">
+                <option value="">All</option>
+                <option th:each="result : ${T(com.example.devblogbackend.enums.ReportResult).values()}"
+                        th:value="${result}" th:text="${result}"></option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="type-filter">Report Type:</label>
+            <select id="type-filter" name="type">
+                <option value="">All</option>
+                <option value="user">User</option>
+                <option value="post">Post</option>
+                <option value="comment">Comment</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Reports List -->
+    <div class="reports-list-wrapper">
+        <div class="reports-count">
+            <span id="report-count" th:text="${#lists.size(reports)}"></span> reports found
+        </div>
+        <div class="reports-list" th:switch="${#lists.size(reports)}">
+            <div th:case="0">
+                <p class="no-reports">No reports available</p>
+            </div>
+            <div th:case="*">
+                <div th:each="report : ${reports}"
+                     class="report-item"
+                     th:data-type="${report.reportedUser != null ? 'user' : (report.reportedPost != null ? 'post' : (report.reportedComment != null ? 'comment' : ''))}"
+                     th:data-status="${report.status}"
+                     th:data-result="${report.result != null ? report.result : ''}">
+                    <div class="report-header">
+                        <span th:text="'Report #' + ${report.reportId}"></span>
+                        <span th:text="'Status: ' + ${report.status}"></span>
+                        <span th:if="${report.result}" th:text="'Result: ' + ${report.result}"></span>
+                    </div>
+                    <div class="report-details">
+                        <p>
+                            <img th:src="${(report.reporter.avatar != null && !#strings.isEmpty(report.reporter.avatar))
+                                        ? (report.reporter.avatar.contains('http://') || report.reporter.avatar.contains('https://')
+                                            ? report.reporter.avatar
+                                            : '/images/' + report.reporter.avatar)
+                                        : '/image/sample_avatar.jpg'}"
+                                         alt="Avatar" class="entity-image"/>
+                        </p>
+                        <p th:text="'Reporter: ' + ${report.reporter.fullName} + ' (' + ${report.reporter.username} + ')'"></p>
+                        <p th:text="'Reason: ' + ${report.reason}"></p>
+                        <p th:if="${report.resultDetails}" th:text="'Result Details: ' + ${report.resultDetails}"></p>
+                        <p th:text="'Created: ' + ${#temporals.format(report.createdAt, 'dd/MM/yyyy HH:mm')}"></p>
+                        <p th:if="${report.updatedAt}"
+                           th:text="'Updated: ' + ${#temporals.format(report.updatedAt, 'dd/MM/yyyy HH:mm')}"></p>
+
+                        <!-- Reported Entity Details -->
+                        <div th:if="${report.reportedUser}" class="reported-entity">
+                            <p>Reported User:</p>
+                            <p th:text="'Username: ' + ${report.reportedUser.username}"></p>
+                            <p th:text="'Fullname: ' + ${report.reportedUser.fullName}"></p>
+                            <p>
+                                <img th:src="${(report.reportedUser.avatar != null && !#strings.isEmpty(report.reportedUser.avatar))
+                                        ? (report.reportedUser.avatar.contains('http://') || report.reportedUser.avatar.contains('https://')
+                                            ? report.reportedUser.avatar
+                                            : '/images/' + report.reportedUser.avatar)
+                                        : '/image/sample_avatar.jpg'}"
+                                             alt="Avatar" class="entity-image"/>
+                            </p>
+                        </div>
+
+                        <div th:if="${report.reportedPost}" class="reported-entity">
+                            <p>Reported Post:</p>
+                            <p th:text="'Title: ' + ${report.reportedPost.title}"></p>
+                            <p th:if="${report.reportedPost.thumbnail}">
+                                Thumbnail: <img
+                                    th:src="${report.reportedPost.thumbnail.contains('http://') || report.reportedPost.thumbnail.contains('https://') ? report.reportedPost.thumbnail : '/images/' + report.reportedPost.thumbnail}"
+                                    alt="Thumbnail" class="entity-image"/>
+                            </p>
+                            <p th:text="'Author: ' + ${report.reportedPost.author.username}"></p>
+                            <p th:text="'Content: ' + ${report.reportedPost.content}"></p>
+                            <p th:text="'Published: ' + ${#temporals.format(report.reportedPost.publicationDate, 'dd/MM/yyyy HH:mm')}"></p>
+                        </div>
+
+                        <div th:if="${report.reportedComment}" class="reported-entity">
+                            <p>Reported Comment:</p>
+                            <p th:text="'Content: ' + ${report.reportedComment.content}"></p>
+                            <p th:text="'User: ' + ${report.reportedComment.user.username}"></p>
+                            <p th:text="'Post ID: ' + ${report.reportedComment.postId}"></p>
+                            <p th:text="'Commented At: ' + ${#temporals.format(report.reportedComment.commentAt, 'dd/MM/yyyy HH:mm')}"></p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="report-actions">
+                        <a th:if="${report.status != 'RESOLVED' && report.status != 'DISMISSED'}" th:href="@{'#'}"
+                           class="action-btn approve-btn">Approve</a>
+                        <a th:if="${report.status != 'RESOLVED' && report.status != 'DISMISSED'}" th:href="@{'#'}"
+                           class="action-btn reject-btn">Reject</a>
+                        <a th:href="@{'#'}" class="action-btn view-btn">View</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Filtering -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const statusFilter = document.getElementById('status-filter');
+            const resultFilter = document.getElementById('result-filter');
+            const typeFilter = document.getElementById('type-filter');
+            const reportItems = document.querySelectorAll('.report-item');
+            const reportCount = document.getElementById('report-count');
+
+            function applyFilters() {
+                const status = statusFilter.value.toLowerCase();
+                const result = resultFilter.value.toLowerCase();
+                const type = typeFilter.value.toLowerCase();
+
+                let visibleCount = 0;
+
+                reportItems.forEach(item => {
+                    const itemStatus = item.getAttribute('data-status')?.toLowerCase() || '';
+                    const itemResult = item.getAttribute('data-result')?.toLowerCase() || '';
+                    const itemType = item.getAttribute('data-type')?.toLowerCase() || '';
+
+                    const statusMatch = !status || itemStatus === status;
+                    const resultMatch = !result || itemResult === result;
+                    const typeMatch = !type || itemType === type;
+
+                    if (statusMatch && resultMatch && typeMatch) {
+                        item.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                reportCount.textContent = visibleCount;
+            }
+
+            statusFilter.addEventListener('change', applyFilters);
+            resultFilter.addEventListener('change', applyFilters);
+            typeFilter.addEventListener('change', applyFilters);
+
+            applyFilters();
+        });
+    </script>
+</div>
+</body>
+</html>

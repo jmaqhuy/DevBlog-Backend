@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;600;700&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 /* Reset cơ bản */
 * {
     box-sizing: border-box;
@@ -8,7 +7,7 @@
 }
 
 body {
-    font-family: "Roboto", sans-serif;
+    font-family: "Poppins", sans-serif;
 }
 
 /* Navbar cố định */
@@ -32,10 +31,11 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-weight: 700;
-    font-size: 18px;
+    font-weight: 400;
+    font-size: 26px;
     text-decoration: none;
     color: #0f0f0f;
+    font-family: "Bebas Neue", sans-serif;
 }
 
 .logo img {
@@ -60,6 +60,8 @@ body {
     position: relative;
     font-weight: 600;
 }
+
+
 
 .nav-list li {
     display: flex;
@@ -133,148 +135,8 @@ body {
     background: #00AFC5;
 }
 
-/* Section header */
-header {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: url("/image/bg.png") bottom center no-repeat;
-    padding-top: 70px;
-}
-
-/* Content */
-header .content {
-    flex: 0 0 45%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 0 20px;
-}
-
-header .content .text h1 {
-    font-size: 48px;
-    font-weight: 800;
-    margin-bottom: 16px;
-    color: #263238;
-}
-
-header .content .text p {
-    font-size: 18px;
-    color: black;
-    max-width: 600px;
-    margin: 0 auto 24px;
-    opacity: 0.5;
-}
-
-/* Button Download */
-.download-btn {
-    display: inline-block;
-    padding: 12px 28px;
-    background-color: #0f0f0f;
-    color: white;
-    border-radius: 50px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: background-color 0.3s;
-}
-
-.download-btn:hover {
-    background-color: #00AFC5;
-}
-
-/* Section Latest Blog Posts */
-.latest-posts {
-    padding: 50px 10%;
-    text-align: center;
-}
-
-.latest-posts h2 {
-    font-size: 36px;
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: #263238;
-}
-
-.latest-posts p {
-    font-size: 18px;
-    color: #666;
-    margin-bottom: 30px;
-}
-
-/* Blog Grid */
-.blog-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 30px;
-}
-
-/* Blog Card */
-.blog-card {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.blog-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-}
-
-.blog-thumbnail {
-    width: 100%;
-    height: 215px;
-    object-fit: cover;
-}
-
-.blog-tag {
-    display: inline-block;
-    font-size: 14px;
-    font-weight: 300;
+.nav-list .nav-link:hover{
     color: #00AFC5;
-    margin: 15px 15px 10px;
-}
-
-.blog-title {
-    font-size: 20px;
-    font-weight: 700;
-    margin: 0 15px 10px;
-    color: #263238;
-}
-
-.blog-author {
-    display: flex;
-    align-items: center;
-    padding: 15px;
-    border-top: 1px solid #eee;
-}
-
-.author-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
-
-.author-info {
-    text-align: left;
-}
-
-.author-username {
-    font-size: 14px;
-    font-weight: 600;
-    color: #263238;
-}
-
-.blog-date {
-    font-size: 12px;
-    color: #999;
 }
 
 /* Responsive design */

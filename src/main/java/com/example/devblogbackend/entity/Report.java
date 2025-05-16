@@ -1,5 +1,7 @@
 package com.example.devblogbackend.entity;
 
+import com.example.devblogbackend.enums.ReportResult;
+import com.example.devblogbackend.enums.ReportStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -82,17 +84,5 @@ public class Report {
         report.setReportedComment(reportedComment);
         report.setReason(reason);
         return report;
-    }
-
-    public enum ReportStatus {
-        PENDING,
-        IN_REVIEW,
-        RESOLVED,
-        DISMISSED
-    }
-
-    public enum ReportResult {
-        APPROVED,
-        REJECTED
     }
 }

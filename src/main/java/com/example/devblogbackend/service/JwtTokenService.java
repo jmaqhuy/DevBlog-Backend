@@ -1,5 +1,6 @@
 package com.example.devblogbackend.service;
 
+import com.example.devblogbackend.enums.Role;
 import com.example.devblogbackend.exception.AuthenticationException;
 import com.example.devblogbackend.exception.TokenValidationException;
 import com.nimbusds.jose.*;
@@ -15,6 +16,8 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Set;
+import java.util.StringJoiner;
 
 @Slf4j
 @Service
@@ -23,20 +26,21 @@ public class JwtTokenService {
     @Value("${jwt.signerKey}")
     private String signerKey;
 
-    public String generateToken(String uid) {
+    public String generateToken(String uid, Set<Role> roles) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
-        JWTClaimsSet claimsSet = buildClaims(uid);
+        JWTClaimsSet claimsSet = buildClaims(uid, roles);
         Payload payload = new Payload(claimsSet.toJSONObject());
         
         return signToken(header, payload, uid);
     }
 
-    private JWTClaimsSet buildClaims(String uid) {
+    private JWTClaimsSet buildClaims(String uid, Set<Role> roles) {
         return new JWTClaimsSet.Builder()
                 .subject(uid)
                 .issuer("devblogbackend")
                 .issueTime(new Date())
                 .expirationTime(new Date(Instant.now().plus(1, ChronoUnit.DAYS).toEpochMilli()))
+                .claim("scope", scopeBuilder(roles))
                 .build();
     }
 
@@ -83,5 +87,13 @@ public class JwtTokenService {
             log.error("Token validation failed: {}", e.getMessage());
             throw new TokenValidationException("Invalid token format or signature", e);
         }
+    }
+
+    private String scopeBuilder(Set<Role> roles) {
+        StringJoiner stringJoiner = new StringJoiner(" ");
+        for (Role role : roles) {
+            stringJoiner.add(role.toString());
+        }
+        return stringJoiner.toString();
     }
 } 

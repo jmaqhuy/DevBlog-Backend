@@ -83,9 +83,13 @@ public class UserService {
         return getUserFavoriteTags(user);
     }
 
-    public ApiResponse<Set<TagDTO>> updateUserFavoriteTags(String token, Set<TagDTO> tags) {
-        User user = verifyAndGetUser(token);
+    public ApiResponse<Set<TagDTO>> updateUserFavoriteTags(String uid, Set<TagDTO> tags) {
+        User user = userRepository.findById(uid)
+                .orElseThrow(() -> new BusinessException("","User not found"));
         user.getFavoriteTags().clear();
+        if (tags == null || tags.size() < 5){
+            throw new BusinessException("","You need add at least 5 tags");
+        }
         for (TagDTO tagDto : tags) {
             Tag tag = tagService.findById(tagDto.getId());
             if (tag == null) {

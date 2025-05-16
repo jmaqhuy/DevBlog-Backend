@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Devblog</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/login-style.css}">
+
+  <link rel="shortcut icon" th:href="@{/image/logo.svg}" type="image/x-icon">
+</head>
+<body>
+  <div class="navbar-top">
+  <a class="logo" th:href="@{/}">
+    <img th:src="@{/image/logo.svg}" alt="Logo"/> DEVBLOG
+  </a>
+  <div class="hamburger">
+    <i class="fas fa-bars"></i>
+  </div>
+  <nav>
+    <ul class="nav-list">
+      <li>
+        <a href="#" class="nav-link"><i class="fa-brands fa-github"></i> GITHUB</a>
+        <ul class="drop-down">
+          <li><a href="https://github.com/jmaqhuy/Devblog-Application" target="_blank">Android App
+            Repository</a></li>
+          <li><a href="https://github.com/jmaqhuy/DevBlog-Backend" target="_blank">Server Repository</a></li>
+        </ul>
+      </li>
+      <li>
+        <a th:href="@{/swagger-ui/index.html#}" class="nav-link" target="_blank">
+          <i class="fa-solid fa-file"></i> API DOCUMENTATION
+        </a>
+      </li>
+      <li>
+        <a th:href="@{/login}" class="cta">
+          <button>LOGIN</button>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</div>
+  <div class="login-container">
+    <h1>WELCOME BACK!</h1>
+    <p>Let's login for explore continues</p>
+    <img th:src="@{/image/logo.svg}" alt="">
+    <div class="login-logo">DEVBLOG</div>
+    <form action="/login" method="post">
+      <label for="email">EMAIL</label>
+      <div class="login-input-wrapper">
+        <img class="login-icon" th:src="@{/image/email.png}" alt="">
+        <input type="email" name="email" id="email" placeholder="Enter your email" required />
+      </div>
+      <label for="password">PASSWORD</label>
+      <div class="login-input-wrapper">
+        <img class="login-icon" th:src="@{/image/password.png}" alt="">
+        <input type="password" name="password" id="password" placeholder="Enter your password" required />
+      </div>
+      <div class="login-options">
+        <a href="#">Forget password</a>
+      </div>
+      <button type="submit">LOGIN</button>
+    </form>
+  </div>
+
+</body>
+</html>

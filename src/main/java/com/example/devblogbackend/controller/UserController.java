@@ -8,6 +8,8 @@ import com.example.devblogbackend.dto.TagDTO;
 import com.example.devblogbackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -66,9 +68,9 @@ public class UserController {
             summary = "User update their favorite tags"
     )
     public ApiResponse<Set<TagDTO>> updateUserFavoriteTags(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal Jwt jwt,
             @RequestBody Set<TagDTO> tags) {
-        return userService.updateUserFavoriteTags(token.substring(7), tags);
+        return userService.updateUserFavoriteTags(jwt.getSubject(), tags);
     }
 
 

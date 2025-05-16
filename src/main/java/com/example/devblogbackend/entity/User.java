@@ -1,7 +1,9 @@
 package com.example.devblogbackend.entity;
 
+import com.example.devblogbackend.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -16,6 +18,7 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -58,6 +61,10 @@ public class User {
 
     @ManyToMany(mappedBy = "following")
     private Set<User> followers = new HashSet<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    private Set<Role> roles = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {

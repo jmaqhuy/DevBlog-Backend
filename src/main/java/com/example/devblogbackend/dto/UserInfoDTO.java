@@ -2,6 +2,7 @@ package com.example.devblogbackend.dto;
 
 import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.entity.User;
+import com.example.devblogbackend.enums.Role;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +25,7 @@ public class UserInfoDTO {
     private String readme;
     private java.time.LocalDateTime registrationAt;
     private Set<Tag> favoriteTags;
+    private Set<Role> roles;
     private int followers;
     private int following;
 
@@ -37,6 +39,7 @@ public class UserInfoDTO {
                 .readme(user.getReadme())
                 .registrationAt(user.getRegistrationAt())
                 .favoriteTags(user.getFavoriteTags())
+                .roles(user.getRoles())
                 .followers(user.getFollowers().size())
                 .following(user.getFollowing().size())
                 .build();

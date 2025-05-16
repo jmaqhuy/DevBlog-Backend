@@ -8,9 +8,11 @@ import com.example.devblogbackend.dto.request.RegisterRequest;
 import com.example.devblogbackend.dto.response.LoginResponse;
 import com.example.devblogbackend.dto.response.RegisterResponse;
 import com.example.devblogbackend.entity.User;
+import com.example.devblogbackend.enums.Role;
 import com.example.devblogbackend.exception.BusinessException;
 import com.example.devblogbackend.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -57,6 +59,7 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRegistrationAt(LocalDateTime.now());
+        user.getRoles().add(Role.USER);
         return user;
     }
 
@@ -70,7 +73,7 @@ public class AuthService {
 
     private ApiResponse<RegisterResponse> buildRegisterResponse(User user) {
         RegisterResponse response = RegisterResponse.builder()
-                .token(jwtTokenService.generateToken(user.getId()))
+                .token(jwtTokenService.generateToken(user.getId(), user.getRoles()))
                 .userInfo(UserInfoDTO.fromEntity(user))
                 .build();
 
@@ -82,7 +85,7 @@ public class AuthService {
 
     private ApiResponse<LoginResponse> buildLoginResponse(User user) {
         LoginResponse response = LoginResponse.builder()
-                .token(jwtTokenService.generateToken(user.getId()))
+                .token(jwtTokenService.generateToken(user.getId(), user.getRoles()))
                 .userInfo(UserInfoDTO.fromEntity(user))
                 .build();
 
@@ -94,5 +97,13 @@ public class AuthService {
 
     public Boolean introspect(String token) {
         return jwtTokenService.validateToken(token);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public boolean isDefaultPassword(String uid) {
+        User user = userRepository.findById(uid).orElseThrow(
+                () -> new BusinessException("User Not Found", "User Not Found")
+        );
+        return passwordEncoder.matches("admin123", user.getPassword());
     }
 }
