@@ -6,8 +6,16 @@
     <title>Report - Devblog</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/report-style.css}">
-
     <link rel="shortcut icon" th:href="@{/image/logo.svg}" type="image/x-icon">
+    <style>
+        .reported-entity {
+            display: none;
+        }
+
+        .reported-entity.show {
+            display: block;
+        }
+    </style>
 </head>
 <body>
 <div th:if="${defaultPassword}" class="warning-banner">
@@ -78,14 +86,14 @@
 
     <!-- Reports List -->
     <div class="reports-list-wrapper">
-        <div class="reports-count">
-            <span id="report-count" th:text="${#lists.size(reports)}"></span> reports found
-        </div>
         <div class="reports-list" th:switch="${#lists.size(reports)}">
             <div th:case="0">
                 <p class="no-reports">No reports available</p>
             </div>
             <div th:case="*">
+                <div class="reports-count">
+                    <span id="report-count" th:text="${#lists.size(reports)}"></span> reports found
+                </div>
                 <div th:each="report : ${reports}"
                      class="report-item"
                      th:data-type="${report.reportedUser != null ? 'user' : (report.reportedPost != null ? 'post' : (report.reportedComment != null ? 'comment' : ''))}"
@@ -103,7 +111,7 @@
                                             ? report.reporter.avatar
                                             : '/images/' + report.reporter.avatar)
                                         : '/image/sample_avatar.jpg'}"
-                                         alt="Avatar" class="entity-image"/>
+                                 alt="Avatar" class="entity-image"/>
                         </p>
                         <p th:text="'Reporter: ' + ${report.reporter.fullName} + ' (' + ${report.reporter.username} + ')'"></p>
                         <p th:text="'Reason: ' + ${report.reason}"></p>
@@ -123,21 +131,35 @@
                                             ? report.reportedUser.avatar
                                             : '/images/' + report.reportedUser.avatar)
                                         : '/image/sample_avatar.jpg'}"
-                                             alt="Avatar" class="entity-image"/>
+                                     alt="Avatar" class="entity-image"/>
                             </p>
                         </div>
 
                         <div th:if="${report.reportedPost}" class="reported-entity">
                             <p>Reported Post:</p>
-                            <p th:text="'Title: ' + ${report.reportedPost.title}"></p>
-                            <p th:if="${report.reportedPost.thumbnail}">
-                                Thumbnail: <img
-                                    th:src="${report.reportedPost.thumbnail.contains('http://') || report.reportedPost.thumbnail.contains('https://') ? report.reportedPost.thumbnail : '/images/' + report.reportedPost.thumbnail}"
-                                    alt="Thumbnail" class="entity-image"/>
-                            </p>
-                            <p th:text="'Author: ' + ${report.reportedPost.author.username}"></p>
-                            <p th:text="'Content: ' + ${report.reportedPost.content}"></p>
+                            <p th:text="'Author: ' + ${report.reportedPost.author.fullName} + '@' + ${report.reportedPost.author.username}"></p>
+
+                            <p th:text="---------------------------------"></p>
+                            <div th:if="${report.reportedPost.externalPost}">
+                                <p th:text="'Title: ' + ${report.reportedPost.externalPost.title}"></p>
+                                <p th:text="'From: ' + ${report.reportedPost.externalPost.domain}"></p>
+                                <p th:if="${report.reportedPost.externalPost.thumbnail}">
+                                    <a th:href="'https://' + ${report.reportedPost.externalPost.domain} + ${report.reportedPost.externalPost.path}" target="_blank">
+                                        <img th:src="${report.reportedPost.externalPost.thumbnail}"
+                                             alt="Thumbnail" class="thumbnail-image"/>
+                                    </a>
+                                </p>
+                            </div>
+                            <div th:unless="${report.reportedPost.externalPost}">
+                                <p th:text="'Title: ' + ${report.reportedPost.title}"></p>
+                                <p th:if="${report.reportedPost.thumbnail}">
+                                    <img
+                                            th:src="${report.reportedPost.thumbnail.contains('http://') || report.reportedPost.thumbnail.contains('https://') ? report.reportedPost.thumbnail : '/images/' + report.reportedPost.thumbnail}"
+                                            alt="Thumbnail" class="thumbnail-image"/>
+                                </p>
+                            </div>
                             <p th:text="'Published: ' + ${#temporals.format(report.reportedPost.publicationDate, 'dd/MM/yyyy HH:mm')}"></p>
+                            <p th:utext="'Author Content: ' + ${markdownUtil.renderMarkdown(report.reportedPost.content)}"></p>
                         </div>
 
                         <div th:if="${report.reportedComment}" class="reported-entity">
@@ -162,7 +184,7 @@
         </div>
     </div>
 
-    <!-- JavaScript for Filtering -->
+    <!-- JavaScript for Filtering and View Toggle -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const statusFilter = document.getElementById('status-filter');
@@ -171,6 +193,7 @@
             const reportItems = document.querySelectorAll('.report-item');
             const reportCount = document.getElementById('report-count');
 
+            // Filter functionality
             function applyFilters() {
                 const status = statusFilter.value.toLowerCase();
                 const result = resultFilter.value.toLowerCase();
@@ -201,6 +224,20 @@
             statusFilter.addEventListener('change', applyFilters);
             resultFilter.addEventListener('change', applyFilters);
             typeFilter.addEventListener('change', applyFilters);
+
+            // View button toggle functionality
+            const viewButtons = document.querySelectorAll('.view-btn');
+            viewButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const reportItem = button.closest('.report-item');
+                    const entityDetails = reportItem.querySelector('.reported-entity');
+                    if (entityDetails) {
+                        const isShown = entityDetails.classList.toggle('show');
+                        button.textContent = isShown ? 'Hide' : 'View';
+                    }
+                });
+            });
 
             applyFilters();
         });

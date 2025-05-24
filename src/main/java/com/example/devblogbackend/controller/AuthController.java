@@ -1,5 +1,6 @@
 package com.example.devblogbackend.controller;
 
+import com.example.devblogbackend.dto.UserInfoDTO;
 import com.example.devblogbackend.dto.request.LoginRequest;
 import com.example.devblogbackend.dto.request.RegisterRequest;
 import com.example.devblogbackend.dto.ApiResponse;
@@ -8,6 +9,9 @@ import com.example.devblogbackend.dto.response.RegisterResponse;
 import com.example.devblogbackend.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -39,7 +43,8 @@ public class AuthController {
     @Operation(
             summary = "Validate token"
     )
-    public Boolean introspect(@RequestHeader("Authorization") String token) {
-        return authService.introspect(token.substring(7));
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<LoginResponse> introspect(@AuthenticationPrincipal Jwt jwt) {
+        return authService.introspect(jwt);
     }
 }

@@ -46,14 +46,22 @@ public class ExternalPostService {
             String thumbnail = null;
             if (page.querySelector("meta[property='og:image']") != null) {
                 thumbnail = page.querySelector("meta[property='og:image']").getAttribute("content");
-                if (!thumbnail.contains(externalPost.getDomain())) {
+
+            } else if (page.querySelector("meta[name='twitter:image']") != null) {
+                thumbnail = page.querySelector("meta[name='twitter:image']").getAttribute("content");
+            }
+            if (thumbnail != null && !thumbnail.isEmpty()) {
+                if (!thumbnail.startsWith("http")) {
                     if (!thumbnail.startsWith("/")) {
                         thumbnail = "/" + thumbnail;
                     }
                     thumbnail = "https://" + externalPost.getDomain() + thumbnail;
                 }
-            } else if (page.querySelector("meta[name='twitter:image']") != null) {
-                thumbnail = page.querySelector("meta[name='twitter:image']").getAttribute("content");
+            }
+
+            String siteName = null;
+            if (page.querySelector("meta[property='og:site_name']") != null) {
+                siteName = page.querySelector("meta[property='og:site_name']").getAttribute("content");
             }
 
             String logo = null;
@@ -68,8 +76,7 @@ public class ExternalPostService {
             } else if (page.querySelector("link[rel='shortcut icon']") != null) {
                 logo = page.querySelector("link[rel='shortcut icon']").getAttribute("href");
             }
-
-
+            externalPost.setSiteName(siteName);
             externalPost.setTitle(title);
             externalPost.setThumbnail(thumbnail);
             externalPost.setWebLogo(logo);

@@ -125,8 +125,8 @@ public class PostService {
                 (float) W_LIKE,
                 (float) W_COMMENT,
                 (float) W_BOOKMARK,
-                (float) DECAY,
                 (float) W_READ_HISTORY,
+                (float) DECAY,
                 pageable
         );
     }

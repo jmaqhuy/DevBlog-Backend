@@ -15,6 +15,7 @@ public class ExternalPost {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String siteName;
     private String domain;
     private String path;
 

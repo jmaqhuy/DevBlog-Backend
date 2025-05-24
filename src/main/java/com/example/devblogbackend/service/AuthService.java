@@ -14,9 +14,13 @@ import com.example.devblogbackend.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Slf4j
 @Service
@@ -95,8 +99,25 @@ public class AuthService {
                 .build();
     }
 
-    public Boolean introspect(String token) {
-        return jwtTokenService.validateToken(token);
+    public ApiResponse<LoginResponse> introspect(Jwt jwt) {
+        User user = userRepository.findById(jwt.getSubject())
+                .orElseThrow(() -> new BusinessException("User Not Found", "User Not Found"));
+
+        long remainingMillis = jwt.getExpiresAt().toEpochMilli() - Instant.now().toEpochMilli();
+        String token = jwt.getTokenValue();
+        if (remainingMillis < Duration.ofHours(12).toMillis()) {
+            token = jwtTokenService.generateToken(user.getId(), user.getRoles());
+        }
+
+        LoginResponse response = LoginResponse.builder()
+                .token(token)
+                .userInfo(UserInfoDTO.fromEntity(user))
+                .build();
+
+        return ApiResponse.<LoginResponse>builder()
+                .data(response)
+                .meta(new Meta(API_VERSION))
+                .build();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
