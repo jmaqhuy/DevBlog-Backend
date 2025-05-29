@@ -28,6 +28,7 @@ public class UserInfoDTO {
     private Set<Role> roles;
     private int followers;
     private int following;
+    private int posts;
 
     public static UserInfoDTO fromEntity(User user){
         return UserInfoDTO.builder()
@@ -42,6 +43,7 @@ public class UserInfoDTO {
                 .roles(user.getRoles())
                 .followers(user.getFollowers().size())
                 .following(user.getFollowing().size())
+                .posts(user.getPostCount())
                 .build();
     }
 

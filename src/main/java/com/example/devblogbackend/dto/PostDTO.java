@@ -1,6 +1,8 @@
 package com.example.devblogbackend.dto;
 
+import com.example.devblogbackend.entity.Bookmark;
 import com.example.devblogbackend.entity.Post;
+import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.entity.User;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -27,19 +29,15 @@ public class PostDTO {
     private String thumbnail;
     private String content;
     private ExternalPostDTO externalPost;
-    private Set<TagDTO> tags = new HashSet<>();
+    private Set<Tag> tags = new HashSet<>();
     private LocalDateTime publicationDate;
     private Boolean isLiked;
     private Integer likes;
     private Integer comments;
+    private Boolean isBookmarked;
+    private Double score;
 
-    public static PostDTO fromEntity(Post post, User user) {
-        Set<TagDTO> tagDTOs = Optional.ofNullable(post.getTags())
-                .orElse(Collections.emptySet())
-                .stream()
-                .map(tag -> TagDTO.fromEntity(tag, 0))
-                .collect(Collectors.toSet());
-
+    public static PostDTO fromEntity(Post post, User user, Boolean isBookmarked) {
         ExternalPostDTO externalPostDTO = null;
         if (post.getExternalPost() != null) {
             externalPostDTO = ExternalPostDTO.fromEntity(post.getExternalPost());
@@ -52,11 +50,13 @@ public class PostDTO {
                 post.getThumbnail(),
                 post.getContent(),
                 externalPostDTO,
-                tagDTOs,
+                post.getTags(),
                 post.getPublicationDate(),
                 post.getLikes().contains(user),
                 post.getLikes().size(),
-                post.getCommentCount()
+                post.getCommentCount(),
+                isBookmarked,
+                post.getScore()
         );
     }
 }

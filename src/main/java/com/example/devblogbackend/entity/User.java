@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Formula;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -61,6 +62,9 @@ public class User {
 
     @ManyToMany(mappedBy = "following")
     private Set<User> followers = new HashSet<>();
+
+    @Formula("(SELECT COUNT(*) FROM post p WHERE p.author = id)")
+    private int postCount;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)

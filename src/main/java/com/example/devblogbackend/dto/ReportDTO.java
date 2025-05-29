@@ -40,7 +40,7 @@ public class ReportDTO {
         if (report.getReportedUser() != null) {
             reportDTO.setReportedUser(UserDTO.fromEntity(report.getReportedUser()));
         } else if (report.getReportedPost() != null) {
-            reportDTO.setReportedPost(PostDTO.fromEntity(report.getReportedPost(), report.getReporter()));
+            reportDTO.setReportedPost(PostDTO.fromEntity(report.getReportedPost(), report.getReporter(), false));
         } else if (report.getReportedComment() != null) {
             reportDTO.setReportedComment(PostCommentDTO.fromEntity(report.getReportedComment()));
         }

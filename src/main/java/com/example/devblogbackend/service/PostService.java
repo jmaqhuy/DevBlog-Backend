@@ -11,6 +11,7 @@ import com.example.devblogbackend.entity.Post;
 import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.entity.User;
 import com.example.devblogbackend.exception.BusinessException;
+import com.example.devblogbackend.repository.BookmarkRepository;
 import com.example.devblogbackend.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -28,19 +29,20 @@ public class PostService {
     private static final int DEFAULT_PAGE_SIZE = 10;
     private static final int SAMPLE_PAGE_SIZE = 6;
     private static final long CUTOFF_DAYS = 30;
-    private static final double W_LIKE = 1.0;
-    private static final double W_COMMENT = 0.5;
-    private static final double W_BOOKMARK = 2.0;
-    private static final double DECAY = 0.1;
-    private static final double W_READ_HISTORY = 0.5;
+    private static final double W_LIKE = 3.0;
+    private static final double W_COMMENT = 5.0;
+    private static final double W_BOOKMARK = 10.0;
+    private static final double DECAY = 10.1;
+    private static final double W_READ_HISTORY = 1.0;
 
     private final ExternalPostService externalPostService;
     private final UserService userService;
     private final PostRepository postRepository;
     private final TagService tagService;
+    private final BookmarkRepository bookmarkRepository;
 
-    public ApiResponse<PostDTO> createPost(String token, CreateNewPostRequest request) {
-        User user = userService.verifyAndGetUser(token);
+    public ApiResponse<PostDTO> createPost(String id, CreateNewPostRequest request) {
+        User user = userService.getUser(id);
         Post post = new Post();
         post.setAuthor(user);
         post.setTitle(request.getTitle());
@@ -51,12 +53,12 @@ public class PostService {
         Post saved = postRepository.save(post);
         return ApiResponse.<PostDTO>builder()
                 .meta(new Meta("v1"))
-                .data(PostDTO.fromEntity(saved, user))
+                .data(PostDTO.fromEntity(saved, user, false))
                 .build();
     }
 
-    public ApiResponse<PostDTO> addExternalPost(String token, ShareExternalPostRequest request) {
-        User user = userService.verifyAndGetUser(token);
+    public ApiResponse<PostDTO> addExternalPost(String id, ShareExternalPostRequest request) {
+        User user = userService.getUser(id);
         ExternalPost ext = externalPostService.addExternalPost(request);
 
         Post post = new Post();
@@ -68,24 +70,24 @@ public class PostService {
         Post saved = postRepository.save(post);
         return ApiResponse.<PostDTO>builder()
                 .meta(new Meta("v1"))
-                .data(PostDTO.fromEntity(saved, user))
+                .data(PostDTO.fromEntity(saved, user, false))
                 .build();
     }
 
-    public ApiResponse<List<PostDTO>> getPostsForYou(String token, int page) {
-        User user = userService.verifyAndGetUser(token);
+    public ApiResponse<List<PostDTO>> getPostsForYou(String id, int page) {
+        User user = userService.getUser(id);
         List<Post> posts = fetchByScore(user.getFavoriteTags(), page, DEFAULT_PAGE_SIZE);
         return toDtoResponse(posts, user);
     }
 
-    public ApiResponse<List<PostDTO>> getTopPosts(String token, int page) {
-        User user = userService.verifyAndGetUser(token);
-        List<Post> posts = fetchByScore(null, page, SAMPLE_PAGE_SIZE);
+    public ApiResponse<List<PostDTO>> getTopPosts(String id, int page) {
+        User user = userService.getUser(id);
+        List<Post> posts = fetchByScore(null, page, DEFAULT_PAGE_SIZE);
         return toDtoResponse(posts, user);
     }
 
-    public ApiResponse<List<PostDTO>> getPostsFollowing(String token, int page) {
-        User user = userService.verifyAndGetUser(token);
+    public ApiResponse<List<PostDTO>> getPostsFollowing(String id, int page) {
+        User user = userService.getUser(id);
         Set<User> following = user.getFollowing();
         if (following.isEmpty()) {
             throw new BusinessException("FOLLOWING_EMPTY", "Your feed is empty because you haven’t followed any user");
@@ -99,9 +101,16 @@ public class PostService {
     }
 
     public List<PostPreviewDTO> getSamplePosts() {
-        List<Post> posts = fetchByScore(null, 0, SAMPLE_PAGE_SIZE);
+        List<Post> posts = fetchByScore(null, 0, DEFAULT_PAGE_SIZE);
         return posts.stream()
                 .map(p -> PostPreviewDTO.fromEntity(p, new User()))
+                .toList();
+    }
+
+    public List<PostDTO> findPostsByTag(Tag tag, User user) {
+        return postRepository.findPostsByTags(Set.of(tag))
+                .stream()
+                .map(p -> PostDTO.fromEntity(p, user, bookmarkRepository.existsByPostAndUser(p, user)))
                 .toList();
     }
 
@@ -133,7 +142,7 @@ public class PostService {
 
     private ApiResponse<List<PostDTO>> toDtoResponse(List<Post> posts, User user) {
         List<PostDTO> dtos = posts.stream()
-                .map(p -> PostDTO.fromEntity(p, user))
+                .map(p -> PostDTO.fromEntity(p, user, bookmarkRepository.existsByPostAndUser(p, user)))
                 .toList();
         return ApiResponse.<List<PostDTO>>builder()
                 .meta(new Meta("v1"))

@@ -2,6 +2,7 @@ package com.example.devblogbackend.dto;
 
 import com.example.devblogbackend.entity.Post;
 import com.example.devblogbackend.entity.PostComment;
+import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.entity.User;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -27,7 +28,7 @@ public class PostPreviewDTO {
     private String username;
     private String title;
     private String thumbnail;
-    private Set<TagDTO> tags = new HashSet<>();
+    private Set<Tag> tags = new HashSet<>();
     private LocalDateTime publicationDate;
     private Boolean liked;
     private Integer likes;
@@ -35,11 +36,6 @@ public class PostPreviewDTO {
     private String link;
 
     public static PostPreviewDTO fromEntity(Post post, User user) {
-        Set<TagDTO> tagDTOs = Optional.ofNullable(post.getTags())
-                .orElse(Collections.emptySet())
-                .stream()
-                .map(tag -> TagDTO.fromEntity(tag, 0))
-                .collect(Collectors.toSet());
 
         boolean hasExternal = post.getExternalPost() != null;
         ExternalPostDTO external = hasExternal ? ExternalPostDTO.fromEntity(post.getExternalPost()) : null;
@@ -51,7 +47,7 @@ public class PostPreviewDTO {
                 .username(hasExternal ? (external.getDomain().contains("www") ? external.getDomain().substring(4) : external.getDomain()) : post.getAuthor().getUsername())
                 .title(hasExternal ? external.getTitle() : post.getTitle())
                 .thumbnail(hasExternal ? external.getThumbnail() : post.getThumbnail())
-                .tags(tagDTOs)
+                .tags(post.getTags())
                 .publicationDate(post.getPublicationDate())
                 .liked(post.getLikes().contains(user))
                 .likes(post.getLikes().size())

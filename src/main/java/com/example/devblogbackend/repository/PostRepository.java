@@ -1,6 +1,7 @@
 package com.example.devblogbackend.repository;
 
 import com.example.devblogbackend.entity.Post;
+import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.entity.User;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,7 +18,16 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(
             value = """
                     SELECT p.*,
-                           (SELECT COUNT(*) FROM post_comment pc WHERE pc.post_id = p.id) AS commentCount
+                           (SELECT COUNT(*) FROM post_comment pc WHERE pc.post_id = p.id) AS commentCount,
+                           (
+                              (
+                                  COUNT(DISTINCT ur.user_id) * :wReadHistory
+                                + COUNT(DISTINCT l.user_id) * :wLike
+                                + COUNT(DISTINCT c.id) * :wComment
+                                + COUNT(DISTINCT b.user_id) * :wBookmark
+                              )
+                              * EXP(-DATEDIFF(CURRENT_DATE, p.publication_date) / :decay)
+                          ) AS score
                       FROM post p
                       LEFT JOIN post_like    l ON l.post_id = p.id
                       LEFT JOIN post_comment c ON c.post_id = p.id
@@ -34,14 +44,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                         )
                       )
                     GROUP BY p.id
-                    ORDER BY
-                      (
-                        COUNT(ur.user_id) * :wReadHistory
-                      + COUNT(l.user_id) * :wLike
-                      + COUNT(c.id) * :wComment
-                      + COUNT(b.user_id) * :wBookmark
-                      - (DATEDIFF(CURRENT_DATE, p.publication_date) * :decay)
-                      ) DESC
+                    ORDER BY score DESC
                     """,
             nativeQuery = true
     )
@@ -68,4 +71,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("cutoff") LocalDateTime cutoff,
             Pageable pageable
     );
+
+    List<Post> findPostsByAuthor(User author);
+
+    List<Post> findPostsByTags(Set<Tag> tags);
 }

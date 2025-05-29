@@ -38,8 +38,8 @@ public class PostInteractionService {
     }
 
 
-    public ApiResponse<Map<String, Boolean>> likePost(long postId, String token) {
-        User user = userService.verifyAndGetUser(token);
+    public ApiResponse<Map<String, Boolean>> likePost(long postId, String id) {
+        User user = userService.getUser(id);
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("", "Post not found"));
@@ -61,9 +61,9 @@ public class PostInteractionService {
 
 
     @Transactional
-    public ApiResponse<PostCommentDTO> commentPost(long postId, CommentRequest request, String token) {
+    public ApiResponse<PostCommentDTO> commentPost(long postId, CommentRequest request, String id) {
 
-        User user = userService.verifyAndGetUser(token);
+        User user = userService.getUser(id);
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("", "Post not found"));
         PostComment parentComment = null;
@@ -87,9 +87,9 @@ public class PostInteractionService {
                 .build();
     }
 
-    public ApiResponse<List<PostCommentDTO>> getCommentPost(long postId, String token, String parentId) {
+    public ApiResponse<List<PostCommentDTO>> getCommentPost(long postId, String id, String parentId) {
 
-        User user = userService.verifyAndGetUser(token);
+        User user = userService.getUser(id);
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("", "Post not found"));
 
@@ -112,8 +112,8 @@ public class PostInteractionService {
     }
 
     @Transactional
-    public ApiResponse<Map<String, Boolean>> bookmarkPost(long postId, String token) {
-        User user = userService.verifyAndGetUser(token);
+    public ApiResponse<Map<String, Boolean>> bookmarkPost(long postId, String id) {
+        User user = userService.getUser(id);
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("", "Post not found"));
 
@@ -141,21 +141,24 @@ public class PostInteractionService {
                 .build();
     }
 
-    public ApiResponse<PostDTO> readPost(Long postId, String token) {
-        User user = userService.verifyAndGetUser(token);
+    public ApiResponse<PostDTO> readPost(Long postId, String id) {
+        User user = userService.getUser(id);
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("", "Post not found"));
 
-        UserReadHistory.UserReadHistoryID id = new UserReadHistory.UserReadHistoryID(user.getId(), post.getId());
-        Optional<UserReadHistory> existed = userReadRepository.findById(id);
+        UserReadHistory.UserReadHistoryID hid = new UserReadHistory.UserReadHistoryID(user.getId(), post.getId());
+        Optional<UserReadHistory> existed = userReadRepository.findById(hid);
         if (existed.isEmpty()) {
             UserReadHistory userReadHistory = new UserReadHistory();
             userReadHistory.setUser(user);
             userReadHistory.setPost(post);
             userReadRepository.save(userReadHistory);
         }
+
+        boolean isBookmarked = bookmarkRepository.existsByPostAndUser(post, user);
+
         return ApiResponse.<PostDTO>builder()
-                .data(PostDTO.fromEntity(post, user))
+                .data(PostDTO.fromEntity(post, user, isBookmarked))
                 .meta(new Meta("v1"))
                 .build();
     }

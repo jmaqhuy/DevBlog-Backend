@@ -1,10 +1,8 @@
 package com.example.devblogbackend.controller;
 
-import com.example.devblogbackend.dto.ApiResponse;
-import com.example.devblogbackend.dto.UserDTO;
-import com.example.devblogbackend.dto.UserInfoDTO;
+import com.example.devblogbackend.dto.*;
 import com.example.devblogbackend.dto.request.UpdateProfileRequest;
-import com.example.devblogbackend.dto.TagDTO;
+import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -12,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,54 +22,56 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
+    @Operation(
+            summary = "Show user profile"
+    )
+    @GetMapping("/{id}")
+    public ApiResponse<UserInfoDTO> getUserProfile(
+            @PathVariable String id) {
+        return userService.getUserProfile(id);
+    }
 
-    @PutMapping( "/me")
+
+    @PutMapping( "/{id}")
     @Operation(
             summary = "Update my profile"
     )
     public ApiResponse<UserInfoDTO> updateProfile(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable String id,
             @RequestBody @Valid UpdateProfileRequest request) {
-        return userService.updateUserProfile(token.substring(7), request);
+        return userService.updateUserProfile(jwt.getSubject(), id, request);
     }
 
-    @Operation(
-            summary = "Show my profile"
-    )
-    @GetMapping("/me")
-    public ApiResponse<UserInfoDTO> getOwnProfile(
-            @RequestHeader("Authorization") String token) {
-        return userService.getOwnProfile(token.substring(7));
-    }
 
-    @Operation(
-            summary = "Show another profile"
-    )
-    @GetMapping("/{id}")
-    public ApiResponse<UserInfoDTO> getUserProfile(
-            @RequestHeader("Authorization") String token,
-            @PathVariable String id) {
-        return userService.getAnotherProfile(token.substring(7), id);
-    }
-
-    @GetMapping("/me/favorite-tags")
+    @GetMapping("/{id}/favorite-tags")
     @Operation(
             summary = "Get my favorite tags"
     )
-    public ApiResponse<Set<TagDTO>> getUserFavoriteTags(
-            @RequestHeader("Authorization") String token) {
-        return userService.getUserFavoriteTags(token.substring(7));
+    public ApiResponse<Set<Tag>> getUserFavoriteTags(
+            @PathVariable String id) {
+        return userService.getUserFavoriteTags(id);
     }
 
 
-    @PostMapping("/me/favorite-tags")
+    @PostMapping("/{id}/favorite-tags")
     @Operation(
             summary = "User update their favorite tags"
     )
-    public ApiResponse<Set<TagDTO>> updateUserFavoriteTags(
+    public ApiResponse<Set<Tag>> updateUserFavoriteTags(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody Set<TagDTO> tags) {
-        return userService.updateUserFavoriteTags(jwt.getSubject(), tags);
+            @PathVariable String id,
+            @RequestBody Set<Tag> tags) {
+        return userService.updateUserFavoriteTags(jwt.getSubject(), id, tags);
+    }
+
+    @GetMapping("/{id}/posts")
+    @Operation(
+            summary = "Get user post"
+    )
+    public ApiResponse<List<PostDTO>> getUserPosts(
+            @PathVariable String id) {
+        return userService.getUserPosts(id);
     }
 
 
@@ -98,9 +99,9 @@ public class UserController {
     )
     @PutMapping("/{id}/follow")
     public ApiResponse<Map<String, Boolean>> follow(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable String id) {
-        return userService.followUser(token.substring(7), id);
+        return userService.followUser(jwt.getSubject(), id);
     }
 
 //    @Operation(

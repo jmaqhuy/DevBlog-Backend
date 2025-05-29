@@ -2,13 +2,14 @@ package com.example.devblogbackend.service;
 
 import com.example.devblogbackend.dto.ApiResponse;
 import com.example.devblogbackend.dto.Meta;
-import com.example.devblogbackend.dto.TagDTO;
-import com.example.devblogbackend.dto.TagScoreProjection;
+import com.example.devblogbackend.dto.TagWithScore;
 import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.repository.TagRepository;
+import jakarta.annotation.PostConstruct;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,9 +19,37 @@ import java.util.stream.Collectors;
 public class TagService {
     private TagRepository tagRepository;
     private final String API_VERSION = "v1";
+    private static List<TagWithScore> topTagsWithScore = new ArrayList<>();
     public TagService(TagRepository tagRepository) {
         this.tagRepository = tagRepository;
     }
+
+    @PostConstruct
+    public void init() {
+        updateTopTags();
+    }
+
+    @Scheduled(fixedRate = 30 * 60 * 1000)
+    public void updateTopTags() {
+        List<Object[]> result = tagRepository.findTagsWithScore();
+        topTagsWithScore = result.stream()
+                .map(obj -> TagWithScore.fromEntity((Tag) obj[0],
+                        ((Number) obj[1]).doubleValue(),
+                        ((Number) obj[2]).longValue(),
+                        null
+                        )
+                )
+                .collect(Collectors.toList());
+    }
+    public ApiResponse<List<TagWithScore>> getTopTagsWithScore() {
+        var topTags = topTagsWithScore;
+        return ApiResponse.<List<TagWithScore>>builder()
+                .data(topTags)
+                .meta(new Meta("v1"))
+                .build();
+    }
+
+
 
     public Tag add(Tag tag) {
         tag.setName(tag.getName().toLowerCase());
@@ -58,17 +87,11 @@ public class TagService {
         return tagRepository.findById(id).orElse(null);
     }
 
-    public ApiResponse<List<TagDTO>> getAllTag() {
-        List<TagDTO> tagDtos = tagRepository.findAllByOrderByNameAsc()
-                .stream()
-                .map(tag -> TagDTO.builder()
-                        .id(tag.getId())
-                        .name(tag.getName())
-                        .build())
-                .toList();
+    public ApiResponse<List<Tag>> getAllTag() {
+        List<Tag> tag = tagRepository.findAllByOrderByNameAsc();
 
-        return ApiResponse.<List<TagDTO>>builder()
-                .data(tagDtos)
+        return ApiResponse.<List<Tag>>builder()
+                .data(tag)
                 .meta(new Meta(API_VERSION))
                 .build();
     }

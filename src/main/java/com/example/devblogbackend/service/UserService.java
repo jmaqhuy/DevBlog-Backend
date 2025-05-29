@@ -6,52 +6,35 @@ import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.entity.User;
 import com.example.devblogbackend.exception.AuthenticationException;
 import com.example.devblogbackend.exception.BusinessException;
+import com.example.devblogbackend.repository.BookmarkRepository;
+import com.example.devblogbackend.repository.PostRepository;
 import com.example.devblogbackend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
-    private final JwtTokenService jwtTokenService;
     private final String API_VERSION = "v1";
     private final TagService tagService;
+    private final PostRepository postRepository;
+    private final BookmarkRepository bookmarkRepository;
 
-    /**
-     * Constructs a new UserService with required dependencies.
-     *
-     * @param userRepository Repository for user data operations
-     * @param jwtTokenService Service for JWT token operations
-     */
-    public UserService(UserRepository userRepository,
-                       JwtTokenService jwtTokenService,
-                       TagService tagService) {
-        this.userRepository = userRepository;
-        this.jwtTokenService = jwtTokenService;
-        this.tagService = tagService;
-    }
-
-    /**
-     * Updates a user's profile information.
-     * This method handles the update of email, username, name, and avatar.
-     * It ensures that email and username remain unique across all users.
-     *
-     * @param token JWT token for user authentication
-     * @param request DTO containing the profile update information
-     * @return ApiResponse containing the updated user profile information
-     * @throws AuthenticationException if the token is invalid or user not found
-     * @throws BusinessException if email or username is already taken
-     */
     public ApiResponse<UserInfoDTO> updateUserProfile(
-            String token,
+            String tokenId,
+            String id,
             UpdateProfileRequest request) {
+
+        if (!Objects.equals(tokenId, id)) {
+            throw new BusinessException("Cannot update profile","You have not permission to update this profile");
+        }
         // Get user from database
-        User user = verifyAndGetUser(token);
+        User user = getUser(tokenId);
 
         // Validate and update email if provided
         if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
@@ -78,20 +61,22 @@ public class UserService {
         return buildResponse(userRepository.save(user));
     }
 
-    public ApiResponse<Set<TagDTO>> getUserFavoriteTags(String token) {
-        User user = verifyAndGetUser(token);
-        return getUserFavoriteTags(user);
+    public ApiResponse<Set<Tag>> getUserFavoriteTags(String id) {
+        return getUserFavoriteTags(getUser(id));
     }
 
-    public ApiResponse<Set<TagDTO>> updateUserFavoriteTags(String uid, Set<TagDTO> tags) {
-        User user = userRepository.findById(uid)
+    public ApiResponse<Set<Tag>> updateUserFavoriteTags(String tokenId, String id, Set<Tag> tags) {
+        if (!Objects.equals(tokenId, id)) {
+            throw new BusinessException("Cannot update favorite tags","You have not permission to update this tags");
+        }
+        User user = userRepository.findById(tokenId)
                 .orElseThrow(() -> new BusinessException("","User not found"));
         user.getFavoriteTags().clear();
         if (tags == null || tags.size() < 5){
             throw new BusinessException("","You need add at least 5 tags");
         }
-        for (TagDTO tagDto : tags) {
-            Tag tag = tagService.findById(tagDto.getId());
+        for (Tag t : tags) {
+            Tag tag = tagService.findById(t.getId());
             if (tag == null) {
                 break;
             }
@@ -101,46 +86,21 @@ public class UserService {
         return getUserFavoriteTags(user);
     }
 
-    private ApiResponse<Set<TagDTO>> getUserFavoriteTags(User user) {
-        Set<TagDTO> tags = user.getFavoriteTags()
-                .stream()
-                .map( tag -> new TagDTO(tag.getId(), tag.getName(), 0))
-                .collect(Collectors.toSet());
+    private ApiResponse<Set<Tag>> getUserFavoriteTags(User user) {
+        Set<Tag> tags = user.getFavoriteTags();
 
-        return ApiResponse.<Set<TagDTO>>builder()
+        return ApiResponse.<Set<Tag>>builder()
                 .data(tags)
                 .meta(new Meta(API_VERSION))
                 .build();
     }
 
-    public User verifyAndGetUser(String token) {
-        String userId = jwtTokenService.validateAndGetUserId(token);
-
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException("","User not found"));
+    public ApiResponse<UserInfoDTO> getUserProfile(String userId) {
+        return buildResponse(getUser(userId));
     }
 
-    /**
-     * Get user profile
-     *
-     * @param token token of ...
-     * @param userId id of user you want to find
-     * @throws BusinessException if userId not match to any user*/
-    public ApiResponse<UserInfoDTO> getAnotherProfile(String token, String userId) {
-        User current = verifyAndGetUser(token);
-        // TODO: following follower ...
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException("User not found","Can't find user with this id"));
-        return buildResponse(user);
-    }
-
-    public ApiResponse<UserInfoDTO> getOwnProfile(String token) {
-        User user = verifyAndGetUser(token);
-        return buildResponse(user);
-    }
-
-    public ApiResponse<Map<String, Boolean>> followUser(String token, String userId) {
-        User user_this = verifyAndGetUser(token);
+    public ApiResponse<Map<String, Boolean>> followUser(String id, String userId) {
+        User user_this = getUser(id);
 
 
         if (user_this.getId().equals(userId)) {
@@ -209,9 +169,7 @@ public class UserService {
     }
 
     public ApiResponse<Set<UserDTO>> getFollowerSet(String id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("User not found","Can't find user with this id"));
-        Set<UserDTO> followers = user.getFollowers()
+        Set<UserDTO> followers = getUser(id).getFollowers()
                 .stream()
                 .map(UserDTO::fromEntity)
                 .collect(Collectors.toSet());
@@ -223,9 +181,7 @@ public class UserService {
     }
 
     public ApiResponse<Set<UserDTO>> getFollowingSet(String id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("User not found","Can't find user with this id"));
-        Set<UserDTO> followings = user.getFollowing()
+        Set<UserDTO> followings = getUser(id).getFollowing()
                 .stream()
                 .map(UserDTO::fromEntity)
                 .collect(Collectors.toSet());
@@ -237,4 +193,20 @@ public class UserService {
     }
 
 
+    public ApiResponse<List<PostDTO>> getUserPosts(String id) {
+        User user = getUser(id);
+        List<PostDTO> post = postRepository.findPostsByAuthor(user)
+                .stream()
+                .map(p -> PostDTO.fromEntity(p, user, bookmarkRepository.existsByPostAndUser(p, user)))
+                .toList();
+        return ApiResponse.<List<PostDTO>>builder()
+                .data(post)
+                .meta(new Meta(API_VERSION))
+                .build();
+    }
+
+    public User getUser(String id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("User not found","Can't find user with this id"));
+    }
 }

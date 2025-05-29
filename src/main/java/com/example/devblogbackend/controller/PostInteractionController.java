@@ -6,6 +6,8 @@ import com.example.devblogbackend.dto.PostDTO;
 import com.example.devblogbackend.dto.request.CommentRequest;
 import com.example.devblogbackend.service.PostInteractionService;
 import jakarta.annotation.Nullable;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,39 +22,39 @@ public class PostInteractionController {
     }
     @GetMapping("/{postId}")
     public ApiResponse<PostDTO> readPost(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long postId) {
-        return postInteractionService.readPost(postId, token.substring(7));
+        return postInteractionService.readPost(postId, jwt.getSubject());
     }
 
     @PostMapping("/{postId}/like")
     public ApiResponse<Map<String, Boolean>> likePost(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long postId) {
-        return postInteractionService.likePost(postId, token.substring(7));
+        return postInteractionService.likePost(postId, jwt.getSubject());
     }
 
     @PostMapping("/{postId}/comment")
     public ApiResponse<PostCommentDTO> commentPost(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long postId,
             @RequestBody CommentRequest request) {
-        return postInteractionService.commentPost(postId, request, token.substring(7));
+        return postInteractionService.commentPost(postId, request, jwt.getSubject());
     }
 
     @GetMapping("/{postId}/comment")
     public ApiResponse<List<PostCommentDTO>> commentPost(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long postId,
             @RequestParam @Nullable String parentId) {
-        return postInteractionService.getCommentPost(postId, token.substring(7), parentId);
+        return postInteractionService.getCommentPost(postId, jwt.getSubject(), parentId);
     }
 
     @PostMapping("/{postId}/bookmark")
     public ApiResponse<Map<String, Boolean>> bookmarkPost(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long postId){
-        return postInteractionService.bookmarkPost(postId, token.substring(7));
+        return postInteractionService.bookmarkPost(postId, jwt.getSubject());
     }
 
 }

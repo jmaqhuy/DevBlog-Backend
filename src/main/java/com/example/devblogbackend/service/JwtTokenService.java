@@ -70,25 +70,6 @@ public class JwtTokenService {
         }
     }
 
-    public String validateAndGetUserId(String token) {
-        try {
-            JWSVerifier verifier = new MACVerifier(signerKey.getBytes());
-            SignedJWT signedJWT = SignedJWT.parse(token);
-
-            boolean verified = signedJWT.verify(verifier);
-            Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-            
-            if (!verified || !expirationTime.after(new Date())) {
-                throw new AuthenticationException("Invalid or expired token");
-            }
-
-            return signedJWT.getJWTClaimsSet().getSubject();
-        } catch (JOSEException | ParseException e) {
-            log.error("Token validation failed: {}", e.getMessage());
-            throw new TokenValidationException("Invalid token format or signature", e);
-        }
-    }
-
     private String scopeBuilder(Set<Role> roles) {
         StringJoiner stringJoiner = new StringJoiner(" ");
         for (Role role : roles) {
