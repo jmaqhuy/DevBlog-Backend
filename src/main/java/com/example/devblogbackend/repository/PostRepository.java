@@ -75,4 +75,17 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findPostsByAuthor(User author);
 
     List<Post> findPostsByTags(Set<Tag> tags);
+
+    // Search posts by title, content, externalPost.title, externalPost.domain, or tag name (case-insensitive)
+    @Query("""
+        SELECT DISTINCT p FROM Post p
+        LEFT JOIN p.tags t
+        LEFT JOIN p.externalPost ep
+        WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+           OR p.content LIKE CONCAT('%', :keyword, '%')
+           OR (ep IS NOT NULL AND (LOWER(ep.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                                 OR LOWER(ep.domain) LIKE LOWER(CONCAT('%', :keyword, '%'))))
+           OR LOWER(t.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+    """)
+    List<Post> searchPostsByKeyword(@Param("keyword") String keyword, Pageable pageable);
 }

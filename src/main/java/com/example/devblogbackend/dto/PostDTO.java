@@ -1,6 +1,5 @@
 package com.example.devblogbackend.dto;
 
-import com.example.devblogbackend.entity.Bookmark;
 import com.example.devblogbackend.entity.Post;
 import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.entity.User;
@@ -11,11 +10,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
