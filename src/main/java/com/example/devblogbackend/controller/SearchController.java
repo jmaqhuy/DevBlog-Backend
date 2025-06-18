@@ -39,4 +39,12 @@ public class SearchController {
         response.setMeta(new Meta("v1"));
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/search-recommendations")
+    public ResponseEntity<ApiResponse<List<String>>> getSearchRecommendations(
+            @RequestParam(value = "keyword", required = false) String keyword) {
+        ApiResponse<List<String>> response = searchService.getRecommendSearch(keyword);
+        response.setMeta(new Meta("v1"));
+        return ResponseEntity.ok(response);
+    }
 }

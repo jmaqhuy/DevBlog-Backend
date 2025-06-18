@@ -45,9 +45,8 @@ public class PostInteractionController {
     @GetMapping("/{postId}/comment")
     public ApiResponse<List<PostCommentDTO>> commentPost(
             @AuthenticationPrincipal Jwt jwt,
-            @PathVariable Long postId,
-            @RequestParam @Nullable String parentId) {
-        return postInteractionService.getCommentPost(postId, jwt.getSubject(), parentId);
+            @PathVariable Long postId) {
+        return postInteractionService.getCommentPost(postId, jwt.getSubject());
     }
 
     @PostMapping("/{postId}/bookmark")
@@ -55,6 +54,13 @@ public class PostInteractionController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long postId){
         return postInteractionService.bookmarkPost(postId, jwt.getSubject());
+    }
+
+    @DeleteMapping("/{postId}/delete")
+    public ApiResponse<Map<String, Boolean>> deletePost(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long postId) {
+        return postInteractionService.deletePost(postId, jwt.getSubject());
     }
 
 }

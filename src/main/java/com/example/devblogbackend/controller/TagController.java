@@ -5,7 +5,6 @@ import com.example.devblogbackend.dto.Meta;
 import com.example.devblogbackend.dto.PostDTO;
 import com.example.devblogbackend.dto.TagWithScore;
 import com.example.devblogbackend.dto.response.TagDetailResponse;
-import com.example.devblogbackend.entity.Post;
 import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.entity.User;
 import com.example.devblogbackend.service.PostService;

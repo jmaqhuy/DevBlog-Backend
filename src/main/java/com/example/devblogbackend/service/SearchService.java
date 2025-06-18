@@ -6,6 +6,7 @@ import com.example.devblogbackend.dto.UserDTO;
 import com.example.devblogbackend.dto.response.SearchResponse;
 import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.entity.SearchLog;
+import com.example.devblogbackend.enums.Role;
 import com.example.devblogbackend.repository.PostRepository;
 import com.example.devblogbackend.repository.TagRepository;
 import com.example.devblogbackend.repository.UserRepository;
@@ -33,13 +34,13 @@ public class SearchService {
         List<Tag> tags = null;
 
         if (target == null || target.equalsIgnoreCase("all")) {
-            users = userRepository.findByUsernameContainingIgnoreCaseOrFullnameContainingIgnoreCase(kw, kw, PageRequest.of(0, limit))
+            users = userRepository.findUserByUsernameOrFullnameNotContainingAdmin(kw, Role.ADMIN, PageRequest.of(0, limit))
                     .stream().map(UserDTO::fromEntity).collect(Collectors.toList());
             posts = postRepository.searchPostsByKeyword(kw, PageRequest.of(0, limit))
                     .stream().map(post -> PostDTO.fromEntity(post, null, null)).collect(Collectors.toList());
             tags = tagRepository.findByNameContainingIgnoreCase(kw, PageRequest.of(0, limit));
         } else if (target.equalsIgnoreCase("user")) {
-            users = userRepository.findByUsernameContainingIgnoreCaseOrFullnameContainingIgnoreCase(kw, kw, PageRequest.of(0, limit))
+            users = userRepository.findUserByUsernameOrFullnameNotContainingAdmin(kw, Role.ADMIN, PageRequest.of(0, limit))
                     .stream().map(UserDTO::fromEntity).collect(Collectors.toList());
         } else if (target.equalsIgnoreCase("post")) {
             posts = postRepository.searchPostsByKeyword(kw, PageRequest.of(0, limit))
@@ -79,5 +80,18 @@ public class SearchService {
             searchHistory = logs.stream().map(SearchLog::getKeyword).toList();
         }
         return ApiResponse.<List<String>>builder().data(searchHistory).build();
+    }
+
+    public ApiResponse<List<String>> getRecommendSearch(String kw){
+        List<String> recommendations = List.of();
+        if (kw != null && !kw.isBlank()) {
+            recommendations = searchLogRepository.findByKeywordContainsIgnoreCase(kw)
+                    .stream()
+                    .map(SearchLog::getKeyword)
+                    .distinct()
+                    .limit(10)
+                    .collect(Collectors.toList());
+        }
+        return ApiResponse.<List<String>>builder().data(recommendations).build();
     }
 }

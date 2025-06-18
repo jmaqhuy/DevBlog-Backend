@@ -9,7 +9,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Formula;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -38,7 +40,7 @@ public class Post {
     @Column(columnDefinition = "LONGTEXT")
     private String content;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "external_post_id", referencedColumnName = "id")
     private ExternalPost externalPost;
 
@@ -64,7 +66,7 @@ public class Post {
     )
     private Set<User> likes = new HashSet<>();
 
-    @OneToMany(mappedBy = "post")
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<PostComment> comments = new HashSet<>();
 
 
@@ -79,6 +81,9 @@ public class Post {
             ") * EXP(-DATEDIFF(CURRENT_DATE, publication_date)/10.1)")
     private Double score = 0.0;
     
-    @OneToMany(mappedBy = "post")
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Bookmark> bookmarks = new HashSet<>();
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserReadHistory> readHistories = new ArrayList<>();
 }

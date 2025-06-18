@@ -58,7 +58,7 @@ public class UserService {
             user.setAvatarLink(request.getImageLink());
         }
 
-        return buildResponse(userRepository.save(user));
+        return buildResponse(userRepository.save(user), null);
     }
 
     public ApiResponse<Set<Tag>> getUserFavoriteTags(String id) {
@@ -95,8 +95,10 @@ public class UserService {
                 .build();
     }
 
-    public ApiResponse<UserInfoDTO> getUserProfile(String userId) {
-        return buildResponse(getUser(userId));
+    public ApiResponse<UserInfoDTO> getUserProfile(String userId, String currentUserId) {
+        User user = getUser(userId);
+        User currentUser = getUser(currentUserId);
+        return buildResponse(user, currentUser.getFollowing().contains(user));
     }
 
     public ApiResponse<Map<String, Boolean>> followUser(String id, String userId) {
@@ -161,9 +163,9 @@ public class UserService {
      * @param user Updated user entity
      * @return ApiResponse containing the updated profile information
      */
-    private ApiResponse<UserInfoDTO> buildResponse(User user) {
+    private ApiResponse<UserInfoDTO> buildResponse(User user, Boolean isFollowing) {
         return ApiResponse.<UserInfoDTO>builder()
-                .data(UserInfoDTO.fromEntity(user))
+                .data(UserInfoDTO.fromEntity(user, isFollowing))
                 .meta(new Meta(API_VERSION))
                 .build();
     }

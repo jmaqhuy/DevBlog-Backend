@@ -34,13 +34,4 @@ public class PostComment {
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime commentAt;
-
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    private PostComment parent;
-
-
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PostComment> replies = new ArrayList<>();
 }

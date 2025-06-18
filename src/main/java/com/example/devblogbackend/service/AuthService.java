@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Slf4j
 @Service
@@ -78,7 +77,7 @@ public class AuthService {
     private ApiResponse<RegisterResponse> buildRegisterResponse(User user) {
         RegisterResponse response = RegisterResponse.builder()
                 .token(jwtTokenService.generateToken(user.getId(), user.getRoles()))
-                .userInfo(UserInfoDTO.fromEntity(user))
+                .userInfo(UserInfoDTO.fromEntity(user, null))
                 .build();
 
         return ApiResponse.<RegisterResponse>builder()
@@ -90,7 +89,7 @@ public class AuthService {
     private ApiResponse<LoginResponse> buildLoginResponse(User user) {
         LoginResponse response = LoginResponse.builder()
                 .token(jwtTokenService.generateToken(user.getId(), user.getRoles()))
-                .userInfo(UserInfoDTO.fromEntity(user))
+                .userInfo(UserInfoDTO.fromEntity(user, null))
                 .build();
 
         return ApiResponse.<LoginResponse>builder()
@@ -111,7 +110,7 @@ public class AuthService {
 
         LoginResponse response = LoginResponse.builder()
                 .token(token)
-                .userInfo(UserInfoDTO.fromEntity(user))
+                .userInfo(UserInfoDTO.fromEntity(user, null))
                 .build();
 
         return ApiResponse.<LoginResponse>builder()

@@ -11,31 +11,24 @@ import com.example.devblogbackend.repository.BookmarkRepository;
 import com.example.devblogbackend.repository.PostCommentRepository;
 import com.example.devblogbackend.repository.PostRepository;
 import com.example.devblogbackend.repository.UserReadRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class PostInteractionService {
     private final PostRepository postRepository;
     private final UserService userService;
     private final PostCommentRepository postCommentRepository;
     private final BookmarkRepository bookmarkRepository;
     private final UserReadRepository userReadRepository;
-
-
-    public PostInteractionService(PostRepository postRepository,
-                                  UserService userService,
-                                  PostCommentRepository postCommentRepository,
-                                  BookmarkRepository bookmarkRepository,
-                                  UserReadRepository userReadRepository) {
-        this.postRepository = postRepository;
-        this.userService = userService;
-        this.postCommentRepository = postCommentRepository;
-        this.bookmarkRepository = bookmarkRepository;
-        this.userReadRepository = userReadRepository;
-    }
+    @PersistenceContext
+    private EntityManager entityManager;
 
 
     public ApiResponse<Map<String, Boolean>> likePost(long postId, String id) {
@@ -66,18 +59,11 @@ public class PostInteractionService {
         User user = userService.getUser(id);
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("", "Post not found"));
-        PostComment parentComment = null;
-        if (request.getParentCommentId() != null) {
-            parentComment = postCommentRepository.findById(request.getParentCommentId())
-                    .orElseThrow(() -> new BusinessException("", "Comment you reply has been remove or not exist"));
-        }
-
 
         PostComment postComment = PostComment.builder()
                 .user(user)
                 .post(post)
                 .content(request.getComment())
-                .parent(parentComment)
                 .build();
 
         postComment = postCommentRepository.save(postComment);
@@ -87,24 +73,14 @@ public class PostInteractionService {
                 .build();
     }
 
-    public ApiResponse<List<PostCommentDTO>> getCommentPost(long postId, String id, String parentId) {
-
-        User user = userService.getUser(id);
+    public ApiResponse<List<PostCommentDTO>> getCommentPost(long postId, String id) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException("", "Post not found"));
 
-        PostComment parent = parentId != null
-                ? postCommentRepository.findById(Long.parseLong(parentId))
-                .orElseThrow(() -> new BusinessException("", "Parent comment not found"))
-                : null;
-
-        List<PostComment> postComment = parentId == null
-                ? postCommentRepository.findByPostAndParentIsNull(post)
-                : postCommentRepository.findByPostAndParent(post, parent);
+        List<PostComment> postComments = postCommentRepository.findByPostOrderByCommentAtDesc(post);
 
         return ApiResponse.<List<PostCommentDTO>>builder()
-                .data(postComment.stream()
-                        .sorted(Comparator.comparing(PostComment::getCommentAt).reversed())
+                .data(postComments.stream()
                         .map(PostCommentDTO::fromEntity)
                         .toList())
                 .meta(new Meta("v1"))
@@ -161,5 +137,53 @@ public class PostInteractionService {
                 .data(PostDTO.fromEntity(post, user, isBookmarked))
                 .meta(new Meta("v1"))
                 .build();
+    }
+
+    @Transactional
+    public ApiResponse<Map<String, Boolean>> deletePost(Long postId, String userid) {
+        User user = userService.getUser(userid);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException("", "Post not found"));
+
+        if (!post.getAuthor().getId().equals(user.getId())) {
+            throw new BusinessException("Permission Denied", "You are not the author of this post");
+        }
+
+        deletePostWithEntityManager(postId);
+
+        return ApiResponse.<Map<String, Boolean>>builder()
+                .data(Map.of("deleted", true))
+                .meta(new Meta("v1"))
+                .build();
+    }
+
+    private void deletePostWithEntityManager(Long postId) {
+
+        entityManager.createNativeQuery("DELETE FROM post_tag WHERE post_id = :postId")
+                .setParameter("postId", postId)
+                .executeUpdate();
+
+        entityManager.createNativeQuery("DELETE FROM post_like WHERE post_id = :postId")
+                .setParameter("postId", postId)
+                .executeUpdate();
+
+        entityManager.createNativeQuery("DELETE FROM user_read_history WHERE post_id = :postId")
+                .setParameter("postId", postId)
+                .executeUpdate();
+
+        entityManager.createNativeQuery("DELETE FROM bookmark WHERE post_id = :postId")
+                .setParameter("postId", postId)
+                .executeUpdate();
+
+        entityManager.createNativeQuery("DELETE FROM post_comment WHERE post_id = :postId")
+                .setParameter("postId", postId)
+                .executeUpdate();
+
+        entityManager.flush();
+
+        Post post = entityManager.find(Post.class, postId);
+        if (post != null) {
+            entityManager.remove(post);
+        }
     }
 }

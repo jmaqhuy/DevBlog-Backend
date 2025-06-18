@@ -4,6 +4,7 @@ import com.example.devblogbackend.entity.Tag;
 import com.example.devblogbackend.entity.User;
 import com.example.devblogbackend.enums.Role;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,8 +30,9 @@ public class UserInfoDTO {
     private int followers;
     private int following;
     private int posts;
+    private Boolean isFollowing;
 
-    public static UserInfoDTO fromEntity(User user){
+    public static UserInfoDTO fromEntity(User user,@Nullable Boolean isFollowing) {
         return UserInfoDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -44,6 +46,7 @@ public class UserInfoDTO {
                 .followers(user.getFollowers().size())
                 .following(user.getFollowing().size())
                 .posts(user.getPostCount())
+                .isFollowing(isFollowing)
                 .build();
     }
 

@@ -12,4 +12,6 @@ public interface SearchLogRepository extends JpaRepository<SearchLog, Long> {
 
     // Find a search log by user and keyword
     SearchLog findByUserAndKeyword(User user, String keyword);
+
+    List<SearchLog> findByKeywordContainsIgnoreCase(String keyword);
 }

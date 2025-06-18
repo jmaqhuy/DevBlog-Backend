@@ -27,8 +27,9 @@ public class UserController {
     )
     @GetMapping("/{id}")
     public ApiResponse<UserInfoDTO> getUserProfile(
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable String id) {
-        return userService.getUserProfile(id);
+        return userService.getUserProfile(id, jwt.getSubject());
     }
 
 
@@ -103,14 +104,4 @@ public class UserController {
             @PathVariable String id) {
         return userService.followUser(jwt.getSubject(), id);
     }
-
-//    @Operation(
-//            summary = "Unfollow user"
-//    )
-//    @DeleteMapping("/{id}/follow")
-//    public ApiResponse<Map<String, Boolean>> unfollow(
-//            @RequestHeader("Authorization") String token,
-//            @PathVariable String id) {
-//        return userService.followUser(token.substring(7), id, false);
-//    }
 } 
