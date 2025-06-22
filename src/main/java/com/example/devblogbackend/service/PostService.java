@@ -90,7 +90,7 @@ public class PostService {
         User user = userService.getUser(id);
         Set<User> following = user.getFollowing();
         if (following.isEmpty()) {
-            throw new BusinessException("FOLLOWING_EMPTY", "Your feed is empty because you haven’t followed any user");
+            throw new BusinessException(400, "Your feed is empty because you haven’t followed any user");
         }
         Pageable pageable = PageRequest.of(page, DEFAULT_PAGE_SIZE);
         LocalDateTime cutoff = LocalDateTime.now().minusDays(CUTOFF_DAYS);

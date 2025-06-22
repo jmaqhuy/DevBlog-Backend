@@ -53,7 +53,7 @@ public class AuthService {
 
     private void validateNewUser(String email) {
         if (userRepository.existsByEmail(email)) {
-            throw new BusinessException("Register Error", "User with this email already exists");
+            throw new BusinessException(400, "User with this email already exists");
         }
     }
 
@@ -69,7 +69,7 @@ public class AuthService {
     private User validateLogin(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail());
         if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new BusinessException("Login Error","Invalid email or password");
+            throw new BusinessException(400,"Invalid email or password");
         }
         return user;
     }
@@ -100,7 +100,7 @@ public class AuthService {
 
     public ApiResponse<LoginResponse> introspect(Jwt jwt) {
         User user = userRepository.findById(jwt.getSubject())
-                .orElseThrow(() -> new BusinessException("User Not Found", "User Not Found"));
+                .orElseThrow(() -> new BusinessException(404, "User Not Found"));
 
         long remainingMillis = jwt.getExpiresAt().toEpochMilli() - Instant.now().toEpochMilli();
         String token = jwt.getTokenValue();
@@ -122,7 +122,7 @@ public class AuthService {
     @PreAuthorize("hasRole('ADMIN')")
     public boolean isDefaultPassword(String uid) {
         User user = userRepository.findById(uid).orElseThrow(
-                () -> new BusinessException("User Not Found", "User Not Found")
+                () -> new BusinessException(404, "User Not Found")
         );
         return passwordEncoder.matches("admin123", user.getPassword());
     }

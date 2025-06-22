@@ -35,7 +35,7 @@ public class PostInteractionService {
         User user = userService.getUser(id);
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("", "Post not found"));
+                .orElseThrow(() -> new BusinessException(404, "Post not found"));
 
         boolean liked = post.getLikes().contains(user);
         if (liked) {
@@ -58,7 +58,7 @@ public class PostInteractionService {
 
         User user = userService.getUser(id);
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("", "Post not found"));
+                .orElseThrow(() -> new BusinessException(404, "Post not found"));
 
         PostComment postComment = PostComment.builder()
                 .user(user)
@@ -75,7 +75,7 @@ public class PostInteractionService {
 
     public ApiResponse<List<PostCommentDTO>> getCommentPost(long postId, String id) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("", "Post not found"));
+                .orElseThrow(() -> new BusinessException(404, "Post not found"));
 
         List<PostComment> postComments = postCommentRepository.findByPostOrderByCommentAtDesc(post);
 
@@ -91,7 +91,7 @@ public class PostInteractionService {
     public ApiResponse<Map<String, Boolean>> bookmarkPost(long postId, String id) {
         User user = userService.getUser(id);
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("", "Post not found"));
+                .orElseThrow(() -> new BusinessException(404, "Post not found"));
 
         Bookmark.BookmarkID bookmarkId = new Bookmark.BookmarkID(user.getId(), postId);
 
@@ -120,7 +120,7 @@ public class PostInteractionService {
     public ApiResponse<PostDTO> readPost(Long postId, String id) {
         User user = userService.getUser(id);
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("", "Post not found"));
+                .orElseThrow(() -> new BusinessException(404, "Post not found"));
 
         UserReadHistory.UserReadHistoryID hid = new UserReadHistory.UserReadHistoryID(user.getId(), post.getId());
         Optional<UserReadHistory> existed = userReadRepository.findById(hid);
@@ -143,10 +143,10 @@ public class PostInteractionService {
     public ApiResponse<Map<String, Boolean>> deletePost(Long postId, String userid) {
         User user = userService.getUser(userid);
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new BusinessException("", "Post not found"));
+                .orElseThrow(() -> new BusinessException(404, "Post not found"));
 
         if (!post.getAuthor().getId().equals(user.getId())) {
-            throw new BusinessException("Permission Denied", "You are not the author of this post");
+            throw new BusinessException(403, "You are not the author of this post");
         }
 
         deletePostWithEntityManager(postId);

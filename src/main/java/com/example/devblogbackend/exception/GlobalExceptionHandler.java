@@ -40,7 +40,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorDetails> handleCustomException(BusinessException ex) {
-        return buildErrorResponse(ex.getErrorType(), ex.getMessage(), HttpStatus.BAD_REQUEST);
+        if (ex.getErrorCode() == 400){
+            return buildErrorResponse("BusinessError", ex.getMessage(), HttpStatus.BAD_REQUEST);
+        } else if (ex.getErrorCode() == 404) {
+            return buildErrorResponse("NotFoundError", ex.getMessage(), HttpStatus.NOT_FOUND);
+        } else if (ex.getErrorCode() == 403) {
+            return buildErrorResponse("ForbiddenError", ex.getMessage(), HttpStatus.FORBIDDEN);
+        }
+        return buildErrorResponse("BusinessError", ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(AuthenticationException.class)

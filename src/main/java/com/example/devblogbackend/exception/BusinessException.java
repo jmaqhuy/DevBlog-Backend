@@ -6,6 +6,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BusinessException extends RuntimeException {
-    private String errorType;
+    private Integer errorCode;
     private String message;
 }

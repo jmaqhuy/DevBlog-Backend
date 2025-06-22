@@ -31,7 +31,7 @@ public class UserService {
             UpdateProfileRequest request) {
 
         if (!Objects.equals(tokenId, id)) {
-            throw new BusinessException("Cannot update profile","You have not permission to update this profile");
+            throw new BusinessException(403,"You have not permission to update this profile");
         }
         // Get user from database
         User user = getUser(tokenId);
@@ -67,13 +67,13 @@ public class UserService {
 
     public ApiResponse<Set<Tag>> updateUserFavoriteTags(String tokenId, String id, Set<Tag> tags) {
         if (!Objects.equals(tokenId, id)) {
-            throw new BusinessException("Cannot update favorite tags","You have not permission to update this tags");
+            throw new BusinessException(403,"You have not permission to update this tags");
         }
         User user = userRepository.findById(tokenId)
-                .orElseThrow(() -> new BusinessException("","User not found"));
+                .orElseThrow(() -> new BusinessException(404,"User not found"));
         user.getFavoriteTags().clear();
         if (tags == null || tags.size() < 5){
-            throw new BusinessException("","You need add at least 5 tags");
+            throw new BusinessException(400,"You need add at least 5 tags");
         }
         for (Tag t : tags) {
             Tag tag = tagService.findById(t.getId());
@@ -106,10 +106,10 @@ public class UserService {
 
 
         if (user_this.getId().equals(userId)) {
-            throw new BusinessException("Invalid Operation", "You cannot follow yourself.");
+            throw new BusinessException(400, "You cannot follow yourself.");
         }
         User user_that = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException("User not found","Can't find user with this id"));
+                .orElseThrow(() -> new BusinessException(404,"Can't find user with this id"));
 
         boolean is_following = user_this.getFollowing().contains(user_that);
         Map<String, Boolean> following = new HashMap<>();
@@ -140,7 +140,7 @@ public class UserService {
      */
     private void validateEmailUniqueness(String email, String userId) {
         if (userRepository.existsByEmailAndIdNot(email, userId)) {
-            throw new BusinessException("Update Error", "Email already taken");
+            throw new BusinessException(400, "Email already taken");
         }
     }
 
@@ -153,7 +153,7 @@ public class UserService {
      */
     private void validateUsernameUniqueness(String username, String userId) {
         if (userRepository.existsByUsernameAndIdNot(username, userId)) {
-            throw new BusinessException("Update Error", "Username already taken");
+            throw new BusinessException(400, "Username already taken");
         }
     }
 
@@ -209,6 +209,6 @@ public class UserService {
 
     public User getUser(String id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("User not found","Can't find user with this id"));
+                .orElseThrow(() -> new BusinessException(404,"Can't find user with this id"));
     }
 }

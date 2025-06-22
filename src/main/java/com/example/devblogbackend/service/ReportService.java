@@ -41,7 +41,7 @@ public class ReportService {
     public Report reportUser(String userId, String reason, String reporterId) {
         User reporter = getReporter(reporterId);
         User reported = userRepository.findById(userId).orElseThrow(
-                () -> new BusinessException("Report Error", "Unknown user who reported")
+                () -> new BusinessException(400, "Unknown user who reported")
         );
         Report report = Report.reportUser(reporter, reported, reason);
         return saveReport(report);
@@ -49,7 +49,7 @@ public class ReportService {
     public Report reportPost(Long postId, String reason, String reporterId) {
         User reporter = getReporter(reporterId);
         Post post = postRepository.findById(postId).orElseThrow(
-                () -> new BusinessException("Report Error", "Unknown post which reported")
+                () -> new BusinessException(400, "Unknown post which reported")
         );
         Report report = Report.reportPost(reporter, post, reason);
         return saveReport(report);
@@ -57,7 +57,7 @@ public class ReportService {
     public Report reportComment(Long cmId, String reason, String reporterId) {
         User reporter = getReporter(reporterId);
         PostComment postComment = postCommentRepository.findById(cmId).orElseThrow(
-                () -> new BusinessException("Report Error", "Unknown comment which reported")
+                () -> new BusinessException(400, "Unknown comment which reported")
         );
         Report report = Report.reportComment(reporter, postComment, reason);
         return saveReport(report);
@@ -70,7 +70,7 @@ public class ReportService {
 
     private User getReporter(String reporterId) {
         return userRepository.findById(reporterId).orElseThrow(
-                () -> new BusinessException("Report Error", "Unknown reporter")
+                () -> new BusinessException(400, "Unknown reporter")
         );
     }
 }
