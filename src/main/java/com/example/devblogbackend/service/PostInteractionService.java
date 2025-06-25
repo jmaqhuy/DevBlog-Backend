@@ -7,6 +7,8 @@ import com.example.devblogbackend.dto.PostDTO;
 import com.example.devblogbackend.dto.request.CommentRequest;
 import com.example.devblogbackend.entity.*;
 import com.example.devblogbackend.exception.BusinessException;
+import com.example.devblogbackend.listener.PostEventListener;
+import com.example.devblogbackend.listener.PostInteractionEvent;
 import com.example.devblogbackend.repository.BookmarkRepository;
 import com.example.devblogbackend.repository.PostCommentRepository;
 import com.example.devblogbackend.repository.PostRepository;
@@ -15,10 +17,13 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostInteractionService {
@@ -27,6 +32,8 @@ public class PostInteractionService {
     private final PostCommentRepository postCommentRepository;
     private final BookmarkRepository bookmarkRepository;
     private final UserReadRepository userReadRepository;
+    private final ApplicationEventPublisher eventPublisher;
+
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -38,12 +45,18 @@ public class PostInteractionService {
                 .orElseThrow(() -> new BusinessException(404, "Post not found"));
 
         boolean liked = post.getLikes().contains(user);
+        log.info("Post score: {}", post.getScore());
         if (liked) {
             post.getLikes().remove(user);
+            log.info("Remove like");
         } else {
             post.getLikes().add(user);
+            log.info("Add like");
         }
-        postRepository.save(post);
+        postRepository.saveAndFlush(post);
+        eventPublisher.publishEvent(new PostInteractionEvent(this, post.getId()));
+
+
         Map<String, Boolean> response = new HashMap<>();
         response.put("liked", !liked);
         return ApiResponse.<Map<String, Boolean>>builder()
@@ -65,8 +78,9 @@ public class PostInteractionService {
                 .post(post)
                 .content(request.getComment())
                 .build();
-
         postComment = postCommentRepository.save(postComment);
+        postRepository.saveAndFlush(post);
+        eventPublisher.publishEvent(new PostInteractionEvent(this, post.getId()));
         return ApiResponse.<PostCommentDTO>builder()
                 .data(PostCommentDTO.fromEntity(postComment))
                 .meta(new Meta("v1"))
@@ -110,6 +124,8 @@ public class PostInteractionService {
             bookmarkRepository.save(bookmark);
             isAdd = true;
         }
+        postRepository.saveAndFlush(post);
+        eventPublisher.publishEvent(new PostInteractionEvent(this, post.getId()));
 
         return ApiResponse.<Map<String, Boolean>>builder()
                 .data(Map.of("bookmark", isAdd))
@@ -129,6 +145,8 @@ public class PostInteractionService {
             userReadHistory.setUser(user);
             userReadHistory.setPost(post);
             userReadRepository.save(userReadHistory);
+            postRepository.saveAndFlush(post);
+            eventPublisher.publishEvent(new PostInteractionEvent(this, post.getId()));
         }
 
         boolean isBookmarked = bookmarkRepository.existsByPostAndUser(post, user);

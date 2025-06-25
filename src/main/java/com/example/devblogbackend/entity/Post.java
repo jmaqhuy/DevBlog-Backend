@@ -56,6 +56,8 @@ public class Post {
     @Column(name = "publication_date")
     private LocalDateTime publicationDate;
 
+    private Double score = 0.0;
+
 
     // statistic
     @ManyToMany
@@ -66,6 +68,9 @@ public class Post {
     )
     private Set<User> likes = new HashSet<>();
 
+    @Formula("(SELECT COUNT(*) FROM post_like pl WHERE pl.post_id = id)")
+    private Integer likeCount = 0;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<PostComment> comments = new HashSet<>();
 
@@ -73,17 +78,15 @@ public class Post {
     @Formula("(SELECT COUNT(*) FROM post_comment pc WHERE pc.post_id = id)")
     private Integer commentCount = 0;
 
-    @Formula( "( " +
-            "   (SELECT COUNT(DISTINCT ur.user_id) FROM user_read_history ur WHERE ur.post_id = id) * 1.0 " +
-            " + (SELECT COUNT(DISTINCT l.user_id) FROM post_like l WHERE l.post_id = id) * 3.0 " +
-            " + (SELECT COUNT(DISTINCT c.id) FROM post_comment c WHERE c.post_id = id) * 5.0 " +
-            " + (SELECT COUNT(DISTINCT b.user_id) FROM bookmark b WHERE b.post_id = id) * 10.0 " +
-            ") * EXP(-DATEDIFF(CURRENT_DATE, publication_date)/10.1)")
-    private Double score = 0.0;
-    
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Bookmark> bookmarks = new HashSet<>();
 
+    @Formula("(SELECT COUNT(*) FROM bookmark b WHERE b.post_id = id)")
+    private Integer bookmarkCount = 0;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserReadHistory> readHistories = new ArrayList<>();
+
+    @Formula("(SELECT COUNT(*) FROM user_read_history urh WHERE urh.post_id = id)")
+    private Integer viewCount = 0;
 }

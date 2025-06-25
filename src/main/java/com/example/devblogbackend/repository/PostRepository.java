@@ -15,6 +15,16 @@ import java.util.Set;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
+
+    @Query("SELECT DISTINCT p FROM Post p " +
+            "LEFT JOIN p.tags t " +
+            "WHERE t.id IN :tagIds " +
+            "ORDER BY p.score DESC")
+    List<Post> findPostsByTagsOrderByScoreDesc(@Param("tagIds") Set<Integer> tagIds, Pageable pageable);
+
+    @Query("SELECT p FROM Post p ORDER BY p.score DESC")
+    List<Post> findAllByOrderByScoreDesc(Pageable pageable);
+
     @Query(
             value = """
                     SELECT p.*,

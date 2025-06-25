@@ -16,8 +16,13 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
 
     Set<Tag> findByNameIn(List<String> names);
 
-    @Query("SELECT t, SUM(p.score) as totalScore, COUNT(p) as postCount FROM Post p JOIN p.tags t GROUP BY t ORDER BY totalScore DESC")
-    List<Object[]> findTagsWithScore();
+    @Query("SELECT t, AVG(p.score) as avgScore, COUNT(p) as postCount " +
+            "FROM Post p JOIN p.tags t " +
+            "WHERE p.score IS NOT NULL " +
+            "GROUP BY t " +
+            "HAVING COUNT(p) > 0 " +
+            "ORDER BY avgScore DESC")
+    List<Object[]> findTagsWithAvgScore();
 
     // Search tags by name containing keyword (case-insensitive)
     List<Tag> findByNameContainingIgnoreCase(String name, Pageable pageable);

@@ -31,7 +31,7 @@ public class TagService {
 
     @Scheduled(fixedRate = 30 * 60 * 1000)
     public void updateTopTags() {
-        List<Object[]> result = tagRepository.findTagsWithScore();
+        List<Object[]> result = tagRepository.findTagsWithAvgScore();
         topTagsWithScore = result.stream()
                 .map(obj -> TagWithScore.fromEntity((Tag) obj[0],
                         ((Number) obj[1]).doubleValue(),
